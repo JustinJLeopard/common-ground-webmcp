@@ -12,7 +12,7 @@ const requiredFiles = [
 ];
 const requiredTools = [
   "get_scenario_state",
-  "set_allocation",
+  "preview_allocation",
   "evaluate_tradeoffs",
   "find_feasible_compromise",
   "apply_compromise",

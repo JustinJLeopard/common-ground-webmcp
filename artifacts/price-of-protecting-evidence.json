@@ -1,9 +1,14 @@
 {
-  "lease": "WEBMCP-CG-PRICE-PROTECT-04",
+  "lease": "WEBMCP-CG-HUMAN-BOUNDARY-05 (repair of WEBMCP-CG-PRICE-PROTECT-04)",
   "owner": "claude-general pid 3102517 session 73b96269-9186-4e34-91e2-e2370567618d",
-  "base": "0d71fc8a29eab104c1cbb741df58264b7ff94d75",
+  "base": "86c765c80b085bf20d47f7a986e3b4b782e5b0a9",
   "capturedBy": "dedicated WebMCP profile only (~/.cache/dev-chrome-webmcp, CDP 9333, Chrome 151.0.7922.173). Justin's main Chrome was never used.",
   "servedFrom": "http://localhost:4173 (python3 -m http.server, repo root)",
+  "repairedDefect": {
+    "summary": "price_of_protecting was read-only, but a registered set_allocation writer let an agent replay the four priced amounts in reduction-first order and reach the exact priced allocation with no human click.",
+    "whyItPassedReview": "Each individual write was validated for range, $5,000 step, and budget. Validating each step never constrained where the steps could lead. The prior test asserted only that applyProtection was absent from the tool table, which proves a missing name, not a capability boundary.",
+    "fix": "The registered arbitrary writer is removed. preview_allocation (readOnlyHint true) returns the same truthful answer, including the exact over-budget refusal, and mutates nothing. Human +/- controls and number inputs still write directly."
+  },
   "toolDiscovery": {
     "count": 7,
     "names": [
@@ -11,11 +16,82 @@
       "evaluate_tradeoffs",
       "find_feasible_compromise",
       "get_scenario_state",
+      "preview_allocation",
       "price_of_protecting",
-      "reset_scenario",
-      "set_allocation"
+      "reset_scenario"
     ],
     "statusPill": "7 WebMCP tools live"
+  },
+  "reproducer": {
+    "setAllocationStillRegistered": false,
+    "registeredTools": [
+      "apply_compromise",
+      "evaluate_tradeoffs",
+      "find_feasible_compromise",
+      "get_scenario_state",
+      "preview_allocation",
+      "price_of_protecting",
+      "reset_scenario"
+    ],
+    "revisionBefore": "0",
+    "revisionAfter": "0",
+    "allocationsBefore": {
+      "night-routes": "425000",
+      "heatwave-commons": "350000",
+      "corner-pantries": "225000",
+      "youth-maker-hours": "100000",
+      "care-link-rides": "100000"
+    },
+    "allocationsAfter": {
+      "night-routes": "425000",
+      "heatwave-commons": "350000",
+      "corner-pantries": "225000",
+      "youth-maker-hours": "100000",
+      "care-link-rides": "100000"
+    },
+    "allocationsUnchanged": true,
+    "reachedPricedState": false,
+    "attempts": [
+      {
+        "proposalId": "night-routes",
+        "amount": 325000,
+        "via": "preview_allocation",
+        "ok": true,
+        "applied": false,
+        "preview": true
+      },
+      {
+        "proposalId": "heatwave-commons",
+        "amount": 250000,
+        "via": "preview_allocation",
+        "ok": true,
+        "applied": false,
+        "preview": true
+      },
+      {
+        "proposalId": "youth-maker-hours",
+        "amount": 175000,
+        "via": "preview_allocation",
+        "ok": false,
+        "preview": true
+      },
+      {
+        "proposalId": "care-link-rides",
+        "amount": 225000,
+        "via": "preview_allocation",
+        "ok": false,
+        "preview": true
+      }
+    ]
+  },
+  "overBudgetPreview": {
+    "ok": false,
+    "reason": "budget_exceeded",
+    "overage": 125000,
+    "message": "Night Routes cannot increase to $450,000 without removing $125,000 elsewhere.",
+    "revisionBefore": "1",
+    "revisionAfter": "1",
+    "visibleDecision": "Preview rejected: that change would break the fixed budget by $125,000. Night Routes cannot increase to $450,000 without removing $125,000 elsewhere."
   },
   "demoCase": {
     "request": {
@@ -83,14 +159,14 @@
       "code": "no_feasible_allocation",
       "message": "No allocation on the $25,000 grid protects Youth Maker Hours at $305,000 without breaking the fixed budget or a stakeholder floor.",
       "hasAllocations": false
-    },
-    "note": "Inside the commitment declared band of 75,000..350,000, yet no allocation on the 25,000 grid reaches it. A true impossibility, not a range error."
+    }
   },
   "humanControl": {
     "revisionBeforeToolCall": "0",
     "revisionAfterToolCall": "0",
+    "revisionAfterReplayAttempt": "0",
     "revisionAfterHumanApply": "1",
-    "allocationAfterToolCall": {
+    "allocationAfterReplayAttempt": {
       "night-routes": "425000",
       "heatwave-commons": "350000",
       "corner-pantries": "225000",
@@ -136,43 +212,48 @@
   "files": [
     {
       "path": "artifacts/price-of-protecting-evidence/01-desktop-before.png",
-      "bytes": 689580,
-      "sha256": "ecea722cb992cb1c0f6f36665f59fa29e60c94ee7670b5414dce6722038d3378"
+      "bytes": 761733,
+      "sha256": "c90f97a2292e480bd9a75b43d1838e49a07a0fe660510a2546534b63d95c0c55"
     },
     {
       "path": "artifacts/price-of-protecting-evidence/02-desktop-pending-before-apply.png",
-      "bytes": 539366,
-      "sha256": "b661dc79f5660313dbbf6e669c2b2f6dbc0ea9b767c6d3b03b4591db0ebdeea3"
+      "bytes": 603446,
+      "sha256": "df5766746ca8dee32040dfa9f48efb0c97964bfffdc5ce85e1beeae64569a9f1"
     },
     {
       "path": "artifacts/price-of-protecting-evidence/03-desktop-after-apply.png",
-      "bytes": 616284,
-      "sha256": "04dfffd85229ac7b6ceb0250710752b836722edee572ea54c51f1662c054625b"
+      "bytes": 691888,
+      "sha256": "a289d27b135f87b81046cd29f27282592218456f7c7476f3f042c2609dc42d76"
     },
     {
       "path": "artifacts/price-of-protecting-evidence/04-desktop-refusal.png",
-      "bytes": 606739,
-      "sha256": "423b017eca8339a1af328db6d81808b4758deaf864771f3990ac74245bea9e5c"
+      "bytes": 693127,
+      "sha256": "019a943f61c1f136c61127720d41cfc4cdb37523519d7d2c0bf4a8a541355fca"
     },
     {
       "path": "artifacts/price-of-protecting-evidence/05-mobile390-refusal.png",
-      "bytes": 789726,
-      "sha256": "173acee88fe22cf595941fdd1a7edb6165fbcf20ed71db27911417cf7085f2b3"
+      "bytes": 918911,
+      "sha256": "e1ee5214945875c0fd4564b6a63297c19fdb803dfeb638976724cbd02808cb2e"
     },
     {
       "path": "artifacts/price-of-protecting-evidence/05b-mobile390-pending-swap.png",
-      "bytes": 747079,
-      "sha256": "2c0c3eb8baabf3d07a4437d0e2f6bce848301d461857b3da08130138a9856f21"
+      "bytes": 797667,
+      "sha256": "17390ab6844c79f2a287093a3e6d9a755a1b3535457eb517c87eb055a4aa87fa"
     },
     {
       "path": "artifacts/price-of-protecting-evidence/06-desktop-reduced-motion.png",
-      "bytes": 716765,
-      "sha256": "014b2b56941e96eb4617bad750fcd0f2b3f5413225d2d9740926baa5052fa9ff"
+      "bytes": 803883,
+      "sha256": "25a86f65121bb7c4d29492cfd8621a630770b6327783d24ee0f4f87ba01ebef8"
+    },
+    {
+      "path": "artifacts/price-of-protecting-evidence/07-desktop-replay-blocked-allocations-unchanged.png",
+      "bytes": 531008,
+      "sha256": "b2a81918dd29a51de34574601a7c7b9152480762c352f817d39a43f4b86976a5"
     },
     {
       "path": "artifacts/price-of-protecting-evidence/interaction.json",
-      "bytes": 6998,
-      "sha256": "1877fe73f10f4604ee6e87546dedcdd1597bfa61fdf9e22b08d145d3e7792d14"
+      "bytes": 10269,
+      "sha256": "d133de6d6d7447e8c374fae5d1351df153d0f54c043a47a1bb47597dc4fa7e5f"
     }
   ]
 }

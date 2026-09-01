@@ -389,7 +389,9 @@ function validateAmount(proposal, amount) {
   return null;
 }
 
-function setAllocation(proposalId, rawAmount, actor = "Human", source = "control") {
+// Human-only write path. There is deliberately no registered tool that reaches
+// this function: see previewAllocation for the agent-facing counterpart.
+function setAllocation(proposalId, rawAmount, actor = "Human") {
   const proposal = proposalById.get(proposalId);
   const amount = Number(rawAmount);
   if (!proposal) {
@@ -402,7 +404,7 @@ function setAllocation(proposalId, rawAmount, actor = "Human", source = "control
     const result = { ok: false, reason: "invalid_amount", message: validation };
     recordDecision("rejected", `Rejected. ${validation}`, state.revision);
     setFeedback(validation);
-    addActivity({ actor, action: "Rejected an invalid edit", detail: validation, tool: source.startsWith("tool") ? "set_allocation" : null });
+    addActivity({ actor, action: "Rejected an invalid edit", detail: validation });
     render();
     return result;
   }
@@ -413,7 +415,7 @@ function setAllocation(proposalId, rawAmount, actor = "Human", source = "control
     const message = `Rejected: that change would break the fixed budget by ${formatMoney(overage)}.`;
     recordDecision("rejected", `${message} ${proposal.name} cannot increase to ${formatMoney(amount)} without removing ${formatMoney(overage)} elsewhere.`, state.revision);
     setFeedback(message);
-    addActivity({ actor, action: "Rejected an over-budget move", detail: `${proposal.name} cannot increase to ${formatMoney(amount)} without removing ${formatMoney(overage)} elsewhere.`, tool: source.startsWith("tool") ? "set_allocation" : null });
+    addActivity({ actor, action: "Rejected an over-budget move", detail: `${proposal.name} cannot increase to ${formatMoney(amount)} without removing ${formatMoney(overage)} elsewhere.` });
     render();
     return { ok: false, reason: "budget_exceeded", proposalId, amount, overage, evaluation: publicEvaluation(evaluation) };
   }
@@ -426,9 +428,80 @@ function setAllocation(proposalId, rawAmount, actor = "Human", source = "control
   pendingProtection = null;
   recordDecision("accepted", `Accepted. ${proposal.name} is now ${formatMoney(amount)}.`, revisionBefore);
   setFeedback(`${proposal.name} is now ${formatMoney(amount)}. The shared scenario was updated.`, "ok");
-  addActivity({ actor, action: "Updated a commitment", detail: `${proposal.name} is now ${formatMoney(amount)}. The rules engine recalculated every floor.`, tool: source.startsWith("tool") ? "set_allocation" : null });
+  addActivity({ actor, action: "Updated a commitment", detail: `${proposal.name} is now ${formatMoney(amount)}. The rules engine recalculated every floor.` });
   render();
   return { ok: true, proposalId, amount, evaluation: publicEvaluation() };
+}
+
+/**
+ * Answer "what would happen if this commitment were set to that amount?"
+ * without doing it.
+ *
+ * This replaced a registered `set_allocation` writer. That tool was read as
+ * safe because each individual write was validated, but validation is not a
+ * capability boundary: an agent could replay a priced protection by writing the
+ * four amounts in reduction-first order, every step in range and under budget,
+ * and reach the exact proposed state with no human involved. Removing the
+ * arbitrary write is the only thing that actually closes that, so the agent
+ * gets the same truthful answer -- including the exact over-budget refusal --
+ * and none of the reach.
+ */
+function previewAllocation(proposalId, rawAmount, actor = "Agent", tool = "preview_allocation") {
+  const proposal = proposalById.get(proposalId);
+  const amount = Number(rawAmount);
+  const revisionBefore = state.revision;
+
+  if (!proposal) {
+    const message = "That commitment is not part of this scenario.";
+    recordDecision("rejected", `Preview rejected. ${message}`, revisionBefore);
+    setFeedback(message);
+    addActivity({ actor, action: "Previewed an unknown commitment", detail: message, tool });
+    render();
+    return { ok: false, preview: true, reason: "unknown_proposal", proposalId, message };
+  }
+
+  const validation = validateAmount(proposal, amount);
+  if (validation) {
+    recordDecision("rejected", `Preview rejected. ${validation}`, revisionBefore);
+    setFeedback(validation);
+    addActivity({ actor, action: "Previewed an invalid edit", detail: `${validation} Nothing changed.`, tool });
+    render();
+    return { ok: false, preview: true, reason: "invalid_amount", proposalId, amount, message: validation };
+  }
+
+  const candidate = { ...state.allocations, [proposalId]: amount };
+  const evaluation = evaluateScenario(candidate);
+
+  if (evaluation.total > BUDGET) {
+    const overage = evaluation.total - BUDGET;
+    const message = `${proposal.name} cannot increase to ${formatMoney(amount)} without removing ${formatMoney(overage)} elsewhere.`;
+    recordDecision("rejected", `Preview rejected: that change would break the fixed budget by ${formatMoney(overage)}. ${message}`, revisionBefore);
+    setFeedback(`That change would break the fixed budget by ${formatMoney(overage)}.`);
+    addActivity({ actor, action: "Previewed an over-budget move", detail: `${message} Nothing changed.`, tool });
+    render();
+    return {
+      ok: false, preview: true, reason: "budget_exceeded",
+      proposalId, amount, overage, budget: BUDGET, total: evaluation.total, message,
+    };
+  }
+
+  const message = `${proposal.name} at ${formatMoney(amount)} would be accepted. A person still has to make the change.`;
+  recordDecision("pending", `Preview only. ${message}`, revisionBefore);
+  setFeedback(message);
+  addActivity({
+    actor,
+    action: "Previewed a commitment change",
+    detail: `${message} Revision ${revisionBefore} is unchanged.`,
+    tool,
+  });
+  render();
+  return {
+    ok: true, preview: true, applied: false,
+    proposalId, amount,
+    note: "Preview only. This tool cannot change the shared scenario; a person must make the change in the interface.",
+    wouldBecome: publicEvaluation(evaluation),
+    current: publicEvaluation(),
+  };
 }
 
 function evaluateTradeoffs(actor = "Human", focus = "all", tool = null) {
@@ -581,21 +654,21 @@ const WEBMCP_TOOLS = [
     },
   },
   {
-    name: "set_allocation",
-    title: "Set one community commitment",
-    description: "Set a single proposal allocation in $5,000 increments. The application rejects an invalid amount or a move that exceeds the fixed budget.",
-    schemaLabel: "input: { proposalId, amount } · output: accepted or rejected state transition",
+    name: "preview_allocation",
+    title: "Preview one community commitment change",
+    description: "Ask what a single proposal allocation would do at a given amount, in $5,000 increments. Returns the exact refusal for an invalid amount or one that would exceed the fixed budget, or the evaluation the scenario would have. Never changes the shared scenario: only a person can move a commitment.",
+    schemaLabel: "input: { proposalId, amount } · output: what would happen · never mutates",
     inputSchema: {
       type: "object",
       properties: {
-        proposalId: { type: "string", enum: PROPOSALS.map(({ id }) => id), description: "Commitment to update." },
+        proposalId: { type: "string", enum: PROPOSALS.map(({ id }) => id), description: "Commitment to ask about." },
         amount: { type: "integer", minimum: 0, description: "Whole-dollar allocation in $5,000 increments." },
       },
       required: ["proposalId", "amount"],
       additionalProperties: false,
     },
-    annotations: { readOnlyHint: false },
-    execute: async ({ proposalId, amount }) => safeResult(setAllocation(proposalId, amount, "Agent", "tool:set_allocation")),
+    annotations: { readOnlyHint: true },
+    execute: async ({ proposalId, amount }) => safeResult(previewAllocation(proposalId, amount)),
   },
   {
     name: "evaluate_tradeoffs",
@@ -684,7 +757,7 @@ function wireHumanControls() {
       if (action === "find") findCompromise();
       if (action === "apply") applyCompromise();
       if (action === "reset") resetScenario();
-      if (action === "stress") setAllocation("night-routes", 450_000, "Human", "stress-test");
+      if (action === "stress") setAllocation("night-routes", 450_000, "Human");
       if (action === "ask-protection") {
         askPriceOfProtecting(dom.protectTarget.value, dom.protectMinimum.value, "Human", "price_of_protecting");
       }
@@ -750,4 +823,4 @@ render();
 registerWebMcpTools();
 
 // Exported for zero-dependency browser-adjacent tests and manual console inspection.
-export { applyCompromise, applyProtection, askPriceOfProtecting, evaluateTradeoffs, findCompromise, resetScenario, setAllocation };
+export { applyCompromise, applyProtection, askPriceOfProtecting, evaluateTradeoffs, findCompromise, previewAllocation, resetScenario, setAllocation };
