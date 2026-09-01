@@ -1,0 +1,218 @@
+{
+  "schema": "common-ground.codex-release-audit.v1",
+  "task_id": "WEBMCP-CG-RELEASE-AUDIT-03",
+  "generated_at": "2026-09-01T12:36:47-04:00",
+  "head": "39b8dd4a23ea5861ff83d289d9bc953c9019ec72",
+  "branch": "justinleopard/fix/webmcp-hostile-state",
+  "preflight_clean": true,
+  "commands": [
+    {
+      "command": "npm test",
+      "exit_status": 0,
+      "status": "PASS",
+      "observed": "node --test tests/*.test.js completed with tests 1, pass 1, fail 0."
+    },
+    {
+      "command": "npm run verify",
+      "exit_status": 0,
+      "status": "PASS",
+      "observed": "Verified 7 source files and 6 WebMCP tools."
+    },
+    {
+      "command": "git diff --check",
+      "exit_status": 0,
+      "status": "PASS",
+      "observed": "No whitespace errors were reported."
+    }
+  ],
+  "checks": [
+    {
+      "id": "static_github_pages_local_structure",
+      "status": "PASS",
+      "evidence_paths": [
+        "index.html:1-249",
+        "styles.css:154-171",
+        "src/app.js:1-9",
+        "assets/civic-ledger-field.png"
+      ],
+      "observed": "A root index.html directly loads the stylesheet and ES module; the module, its model import, and the sole raster asset are present. No build output or server-side route is required.",
+      "scope_limit": "This establishes local static-host structure only, not a deployed GitHub Pages site."
+    },
+    {
+      "id": "relative_path_compatibility",
+      "status": "PASS",
+      "evidence_paths": [
+        "index.html:12",
+        "index.html:247",
+        "styles.css:160-171",
+        "src/app.js:1-9"
+      ],
+      "observed": "Runtime asset references are subpath-compatible relative references: styles.css, src/app.js, ./model.js, and assets/civic-ledger-field.png. No root-absolute runtime asset reference was found."
+    },
+    {
+      "id": "reproducible_local_run_instructions",
+      "status": "FAIL",
+      "evidence_paths": [
+        "README.md:30-43",
+        "package.json:8-14"
+      ],
+      "observed": "README.md:35 hardcodes /home/justai/projects/common-ground-webmcp. Following the documented block verbatim from any differently located clone enters this workstation checkout or fails instead of running that clone. The block also relies on Node/npm and Python 3 without listing both prerequisites in the Local run section."
+    },
+    {
+      "id": "webmcp_feature_explanation",
+      "status": "PASS",
+      "evidence_paths": [
+        "README.md:7-28",
+        "README.md:45-52",
+        "index.html:152-180",
+        "index.html:219-229"
+      ],
+      "observed": "The README and page explain typed imperative tools, shared deterministic state, rejection, compromise discovery, human review, apply, and feature-detected fallback without claiming hidden model control."
+    },
+    {
+      "id": "public_repository_license_detectability_local_material",
+      "status": "PASS",
+      "evidence_paths": [
+        "LICENSE:1-21",
+        "package.json:5-6",
+        "README.md:75-87"
+      ],
+      "observed": "A conventionally named root LICENSE contains the MIT text, package.json declares MIT, and README links to LICENSE. These local materials are suitable for repository license detection if published."
+    },
+    {
+      "id": "accessibility_and_reduced_motion_evidence",
+      "status": "PASS",
+      "evidence_paths": [
+        "index.html:15-15",
+        "index.html:35-149",
+        "styles.css:445-458",
+        "tests/model.test.js:15-22",
+        "artifacts/codex-source-01.json",
+        "artifacts/design-evidence.json",
+        "artifacts/design-evidence/after-mobile390.png",
+        "artifacts/design-evidence/reduced-motion.png"
+      ],
+      "observed": "Local source includes semantic controls, labels, live regions, a skip link, and reduced-motion/contrast media queries. The source regression covers allocation description references. The design packet records zero sub-12px nodes, zero sub-44px targets, no horizontal overflow at a 390x844 emulated viewport, and forced reduced motion with 0 running animations and 0.01ms transition duration."
+    },
+    {
+      "id": "honest_limitations",
+      "status": "PASS",
+      "evidence_paths": [
+        "README.md:3-5",
+        "README.md:17-17",
+        "README.md:43-43",
+        "README.md:75-83",
+        "index.html:232-239",
+        "design-qa.md:67-78"
+      ],
+      "observed": "The project identifies the scenario as fictional and the product as a prototype, distinguishes ordinary-browser fallback from WebMCP availability, records deployment/publication as unperformed in local documentation, and states the design asset's limited role."
+    },
+    {
+      "id": "six_named_typed_webmcp_tools_in_source",
+      "status": "PASS",
+      "evidence_paths": [
+        "src/app.js:407-479",
+        "src/app.js:509-530",
+        "scripts/verify.js:13-29",
+        "artifacts/release-evidence/after.json"
+      ],
+      "observed": {
+        "registration": "document.modelContext.registerTool",
+        "tools": [
+          "get_scenario_state",
+          "set_allocation",
+          "evaluate_tradeoffs",
+          "find_feasible_compromise",
+          "apply_compromise",
+          "reset_scenario"
+        ],
+        "typed_contract": "Each tool definition supplies an object inputSchema; set_allocation declares required typed proposalId and integer amount properties, evaluate_tradeoffs declares a typed optional enum, and the no-argument tools reject additional properties."
+      }
+    },
+    {
+      "id": "browser_proof_rejection_find_human_review_apply",
+      "status": "PASS",
+      "evidence_paths": [
+        "artifacts/design-evidence/interaction.json",
+        "artifacts/design-evidence/after-rejection.png",
+        "artifacts/design-evidence/after-find.png",
+        "artifacts/design-evidence/after-apply.png"
+      ],
+      "observed": "The interaction record shows rejection at revision 0 with state unchanged; find leaves revision/state unchanged and enables apply; apply advances revision 0 to 1, changes floors 1/3 to 3/3, and records acceptance after human review."
+    },
+    {
+      "id": "browser_proof_three_scroll_checkpoints",
+      "status": "PASS",
+      "evidence_paths": [
+        "artifacts/design-evidence/after-design.json",
+        "artifacts/design-evidence/after-first-view.png",
+        "artifacts/design-evidence/after-decision-surface.png",
+        "artifacts/design-evidence/after-trail-and-tools.png"
+      ],
+      "observed": "The after packet records first-view at 0%, decision-surface at 35%, and trail-and-tools at 80%, each without horizontal overflow."
+    },
+    {
+      "id": "browser_proof_mobile_390x844",
+      "status": "PASS",
+      "evidence_paths": [
+        "artifacts/design-evidence.json",
+        "artifacts/design-evidence/after-design.json",
+        "artifacts/design-evidence/after-mobile390.png"
+      ],
+      "observed": "The packet identifies a 390x844 mobile/touch emulation and records innerWidth 390, scrollWidth 390, no horizontal overflow, zero sub-12px text nodes, and zero tap targets under 44px."
+    },
+    {
+      "id": "browser_proof_forced_reduced_motion",
+      "status": "PASS",
+      "evidence_paths": [
+        "artifacts/design-evidence.json",
+        "artifacts/design-evidence/reduced-motion.png",
+        "styles.css:445-452"
+      ],
+      "observed": "The forced reduced-motion evidence records prefersReducedMotion true, automatic scroll behavior, 0 running animations, and retained exact DOM values; source suppresses animation and transition duration under the preference."
+    },
+    {
+      "id": "existing_release_and_design_evidence_integrity",
+      "status": "PASS",
+      "evidence_paths": [
+        "artifacts/release-evidence.json",
+        "artifacts/design-evidence.json"
+      ],
+      "observed": "All 23 files listed by the two evidence manifests are present and their current SHA-256 values match the recorded values."
+    },
+    {
+      "id": "public_repository_state",
+      "status": "UNKNOWN",
+      "evidence_paths": [
+        "README.md:75-83"
+      ],
+      "observed": "The local README records the repository as unpublished, but no GitHub or network observation was authorized or performed; current external repository existence, visibility, settings, and license detection remain unknown."
+    },
+    {
+      "id": "public_url_state",
+      "status": "UNKNOWN",
+      "evidence_paths": [
+        "README.md:75-83"
+      ],
+      "observed": "The local README records deployment as unperformed, but no network or browser observation was authorized or performed; current live URL, HTTPS serving, and WebMCP behavior at a public URL remain unknown."
+    }
+  ],
+  "decision": "FAIL",
+  "blocking_defects": [
+    {
+      "id": "CG-RELEASE-README-PORTABILITY-001",
+      "summary": "The documented local run is tied to Justin's private absolute checkout path and is not reproducible verbatim from an arbitrary public clone.",
+      "evidence_paths": [
+        "README.md:30-43"
+      ],
+      "acceptance_test": "Place a checkout at /tmp/cg-readme-acceptance/common-ground-webmcp, begin in /tmp/cg-readme-acceptance, and follow the revised README Local run instructions verbatim. Before running project commands, pwd -P must resolve to /tmp/cg-readme-acceptance/common-ground-webmcp; npm test and npm run verify must exit 0; npm run dev must serve that checkout's root index.html on port 4173. The section must state the required Node/npm and Python 3 prerequisites and must not contain a Justin-specific absolute path."
+    }
+  ],
+  "non_blocking_notes": [
+    "Local source structure is compatible with static GitHub Pages hosting, but this audit does not establish a public repository, Pages configuration, deployment, HTTPS URL, or live public WebMCP operation.",
+    "The older release/design manifests retain historical open-gap text about an unformatted raw 5000 budget message. Current HEAD resolves it in src/model.js:169-179, and tests/model.test.js:31-55 covers both under-budget and over-budget USD formatting; that historical note is not a current blocker.",
+    "The accessibility evidence is scoped proof for the named semantics, regression, mobile measurements, and reduced-motion behavior; it is not a complete assistive-technology or WCAG conformance audit.",
+    "The currentness of external challenge rules was not checked because network and browser access were prohibited."
+  ],
+  "exact_next_gate": "Desktop Main assigns and accepts a README-only source repair for CG-RELEASE-README-PORTABILITY-001 using the stated arbitrary-checkout acceptance test. Public repository and public HTTPS URL verification remain separate later publication gates and must stay UNKNOWN until directly observed."
+}

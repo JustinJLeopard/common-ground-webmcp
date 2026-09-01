@@ -1,0 +1,29 @@
+{
+  "schema": "common-ground.desktop-release-audit-closure.v1",
+  "task_id": "WEBMCP-CG-RELEASE-AUDIT-03-CLOSURE",
+  "recorded_at": "2026-09-01T12:41:21-04:00",
+  "source_audit": "artifacts/codex-release-audit-03.json",
+  "source_head": "39b8dd4a23ea5861ff83d289d9bc953c9019ec72",
+  "closed_defect": "CG-RELEASE-README-PORTABILITY-001",
+  "repair": {
+    "path": "README.md",
+    "summary": "Replace the workstation-specific checkout path with clone-relative instructions and state the Node/npm and Python 3 prerequisites."
+  },
+  "acceptance": {
+    "arbitrary_checkout": "/tmp/cg-readme-acceptance/common-ground-webmcp",
+    "resolved_working_directory": "/tmp/cg-readme-acceptance/common-ground-webmcp",
+    "justin_absolute_path_absent": true,
+    "node_npm_prerequisite_documented": true,
+    "python3_prerequisite_documented": true,
+    "npm_test": "PASS: 9/9",
+    "npm_run_verify": "PASS: 7 source files and 6 WebMCP tools",
+    "npm_run_dev": "PASS: served the copied checkout root index.html on port 4173",
+    "served_title": "Common Ground"
+  },
+  "publication": {
+    "public_repository": "UNKNOWN",
+    "public_https_url": "UNKNOWN",
+    "state": "DEFERRED_BY_JUSTIN_UNTIL_END"
+  },
+  "decision": "LOCAL_RELEASE_PACKAGE_PASS_WITH_PUBLICATION_UNVERIFIED"
+}

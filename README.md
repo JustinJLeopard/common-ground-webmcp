@@ -31,8 +31,11 @@ The page uses feature detection. It remains fully usable in an ordinary browser,
 
 This repository intentionally has **no third-party runtime dependencies**.
 
+Prerequisites: **Node.js 20 or newer with npm**, plus **Python 3** for the
+local static server. From the directory that contains your clone:
+
 ```bash
-cd /home/justai/projects/common-ground-webmcp
+cd common-ground-webmcp
 npm test
 npm run verify
 npm run dev
