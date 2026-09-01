@@ -106,6 +106,11 @@ export const INITIAL_ALLOCATIONS = Object.freeze({
 });
 
 const proposalById = new Map(PROPOSALS.map((proposal) => [proposal.id, proposal]));
+const exactUsd = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
 
 function cloneAllocations(allocations) {
   return Object.fromEntries(
@@ -164,12 +169,13 @@ export function evaluateScenario(rawAllocations) {
   const total = Object.values(allocations).reduce((sum, amount) => sum + amount, 0);
   const budgetDelta = BUDGET - total;
   if (budgetDelta !== 0) {
+    const budgetDifference = exactUsd.format(Math.abs(budgetDelta));
     issues.push({
       code: "budget_mismatch",
       message:
         budgetDelta > 0
-          ? `${budgetDelta} remains unallocated.`
-          : `${Math.abs(budgetDelta)} must be removed to meet the fixed budget.`,
+          ? `${budgetDifference} remains unallocated.`
+          : `${budgetDifference} must be removed to meet the fixed budget.`,
     });
   }
 

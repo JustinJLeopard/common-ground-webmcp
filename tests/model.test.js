@@ -28,6 +28,32 @@ test("the opening brief is a fixed-budget but stakeholder-incomplete human draft
   assert.ok(evaluation.floors.some((floor) => !floor.met));
 });
 
+test("budget mismatch issues show exact USD for underages and overages", () => {
+  const cases = [
+    {
+      allocations: {
+        ...INITIAL_ALLOCATIONS,
+        "night-routes": INITIAL_ALLOCATIONS["night-routes"] - 5_000,
+      },
+      message: "$5,000 remains unallocated.",
+    },
+    {
+      allocations: {
+        ...INITIAL_ALLOCATIONS,
+        "night-routes": INITIAL_ALLOCATIONS["night-routes"] + 5_000,
+      },
+      message: "$5,000 must be removed to meet the fixed budget.",
+    },
+  ];
+
+  for (const { allocations, message } of cases) {
+    const issue = evaluateScenario(allocations).issues.find(
+      ({ code }) => code === "budget_mismatch",
+    );
+    assert.equal(issue?.message, message);
+  }
+});
+
 test("a tempting extra allocation is rejected by the shared fixed-budget reducer", () => {
   const result = reduceScenario(createInitialState(), {
     type: "SET_ALLOCATION",

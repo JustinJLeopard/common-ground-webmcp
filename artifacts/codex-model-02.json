@@ -1,0 +1,10 @@
+{
+  "before": {
+    "underBudget": "5000 remains unallocated.",
+    "overBudget": "5000 must be removed to meet the fixed budget."
+  },
+  "after": {
+    "underBudget": "$5,000 remains unallocated.",
+    "overBudget": "$5,000 must be removed to meet the fixed budget."
+  }
+}
