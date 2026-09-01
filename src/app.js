@@ -39,6 +39,11 @@ const dom = {
   webmcpStatus: document.querySelector("#webmcp-status"),
   compromiseCopy: document.querySelector("#compromise-copy"),
   compromiseSummary: document.querySelector("#compromise-summary"),
+  revisionValue: document.querySelector("#revision-value"),
+  decisionRecord: document.querySelector("#decision-record"),
+  decisionBody: document.querySelector("#decision-body"),
+  decisionRevision: document.querySelector("#decision-revision"),
+  commitmentField: document.querySelector("#commitment-field"),
   applyButton: document.querySelector('[data-action="apply"]'),
 };
 
@@ -46,6 +51,10 @@ let state = createInitialState();
 let proposedCompromise = null;
 let feedback = "";
 let activities = [];
+// The decision record. A rejected move must be able to show its exact reason
+// AND that the shared revision did not advance -- that is the difference
+// between "the app refused" and "the app ignored me".
+let lastDecision = null;
 
 const formatMoney = (value) => currency.format(value);
 const formatCompactMoney = (value) => compactCurrency.format(value).replace("K", "k");
@@ -103,6 +112,42 @@ function addActivity({ actor, action, detail, tool = null, result = "" }) {
     },
     ...activities,
   ].slice(0, 12);
+}
+
+function recordDecision(kind, message, revisionBefore) {
+  lastDecision = {
+    kind,
+    message,
+    revisionBefore,
+    revisionAfter: state.revision,
+    at: nowStamp(),
+  };
+}
+
+function renderDecision() {
+  if (!lastDecision) {
+    dom.decisionRecord.hidden = true;
+    return;
+  }
+  const { kind, message, revisionBefore, revisionAfter, at } = lastDecision;
+  dom.decisionRecord.hidden = false;
+  dom.decisionRecord.className = `decision-record ${kind}`;
+  dom.decisionBody.textContent = message;
+  dom.decisionRevision.textContent = revisionBefore === revisionAfter
+    ? `${at} · revision ${revisionBefore} unchanged — the shared scenario was not modified.`
+    : `${at} · revision ${revisionBefore} → ${revisionAfter} — the shared scenario advanced.`;
+}
+
+function renderCommitmentField(evaluation) {
+  // Depth only. Every exact figure stays in the table and the readouts; this
+  // is the same numbers as proportion, so the eye can see the split at a glance.
+  const total = evaluation.total || 1;
+  dom.commitmentField.innerHTML = PROPOSALS
+    .map((proposal) => {
+      const pct = ((evaluation.allocations[proposal.id] || 0) / total) * 100;
+      return `<i style="width:${pct.toFixed(2)}%"></i>`;
+    })
+    .join("");
 }
 
 function setFeedback(message, kind = "") {
@@ -163,11 +208,17 @@ function renderMetrics(evaluation) {
     : evaluation.budgetDelta > 0
       ? `${formatMoney(evaluation.budgetDelta)} unallocated`
       : `${formatMoney(Math.abs(evaluation.budgetDelta))} over budget`;
+  if (dom.totalValue.textContent !== totalLabel && dom.totalValue.textContent !== "—") {
+    dom.totalValue.classList.remove("changed");
+    void dom.totalValue.offsetWidth;
+    dom.totalValue.classList.add("changed");
+  }
   dom.totalValue.textContent = totalLabel;
+  dom.revisionValue.textContent = String(state.revision);
   dom.scoreValue.textContent = `${evaluation.score}/100`;
   dom.floorsValue.textContent = `${constraintsMet}/${evaluation.floors.length}`;
   dom.budgetLabel.textContent = budgetText;
-  dom.budgetMeter.style.width = `${percent}%`;
+  dom.budgetMeter.style.transform = `scaleX(${(percent / 100).toFixed(4)})`;
   dom.budgetMeter.parentElement.classList.toggle("over", evaluation.total > BUDGET);
   dom.budgetMeter.parentElement.setAttribute("aria-valuenow", String(evaluation.total));
   dom.scenarioStatus.textContent = evaluation.valid ? "Feasible" : "Needs revision";
@@ -236,6 +287,8 @@ function render() {
   renderMetrics(evaluation);
   renderFloors(evaluation);
   renderAllocations(evaluation);
+  renderCommitmentField(evaluation);
+  renderDecision();
   renderLog();
   renderCompromise();
 }
@@ -260,6 +313,7 @@ function setAllocation(proposalId, rawAmount, actor = "Human", source = "control
   const validation = validateAmount(proposal, amount);
   if (validation) {
     const result = { ok: false, reason: "invalid_amount", message: validation };
+    recordDecision("rejected", `Rejected. ${validation}`, state.revision);
     setFeedback(validation);
     addActivity({ actor, action: "Rejected an invalid edit", detail: validation, tool: source.startsWith("tool") ? "set_allocation" : null });
     render();
@@ -270,13 +324,16 @@ function setAllocation(proposalId, rawAmount, actor = "Human", source = "control
   if (evaluation.total > BUDGET) {
     const overage = evaluation.total - BUDGET;
     const message = `Rejected: that change would break the fixed budget by ${formatMoney(overage)}.`;
+    recordDecision("rejected", `${message} ${proposal.name} cannot increase to ${formatMoney(amount)} without removing ${formatMoney(overage)} elsewhere.`, state.revision);
     setFeedback(message);
     addActivity({ actor, action: "Rejected an over-budget move", detail: `${proposal.name} cannot increase to ${formatMoney(amount)} without removing ${formatMoney(overage)} elsewhere.`, tool: source.startsWith("tool") ? "set_allocation" : null });
     render();
     return { ok: false, reason: "budget_exceeded", proposalId, amount, overage, evaluation: publicEvaluation(evaluation) };
   }
+  const revisionBefore = state.revision;
   state = { allocations: candidate, revision: state.revision + 1 };
   proposedCompromise = null;
+  recordDecision("accepted", `Accepted. ${proposal.name} is now ${formatMoney(amount)}.`, revisionBefore);
   setFeedback(`${proposal.name} is now ${formatMoney(amount)}. The shared scenario was updated.`, "ok");
   addActivity({ actor, action: "Updated a commitment", detail: `${proposal.name} is now ${formatMoney(amount)}. The rules engine recalculated every floor.`, tool: source.startsWith("tool") ? "set_allocation" : null });
   render();
@@ -316,13 +373,21 @@ function findCompromise(actor = "Human", tool = null) {
 function applyCompromise(actor = "Human", tool = null) {
   if (!proposedCompromise) {
     const message = "There is no pending compromise. Find one before applying it.";
+    recordDecision("rejected", `Rejected. ${message}`, state.revision);
     setFeedback(message);
     addActivity({ actor, action: "Could not apply a compromise", detail: message, tool });
     render();
     return { ok: false, reason: "no_pending_compromise", message };
   }
+  const revisionBefore = state.revision;
   state = { allocations: { ...proposedCompromise.allocations }, revision: state.revision + 1 };
   const evaluation = evaluateScenario(state.allocations);
+  const floorsMet = evaluation.floors.filter((floor) => floor.met).length;
+  recordDecision(
+    "accepted",
+    `Accepted after human review. ${formatMoney(evaluation.total)} committed, ${floorsMet}/${evaluation.floors.length} floors protected.`,
+    revisionBefore,
+  );
   setFeedback("Compromise applied. The new allocation is feasible and every floor is protected.", "ok");
   addActivity({ actor, action: "Applied the shared compromise", detail: `The live scenario is now feasible: ${formatMoney(evaluation.total)} committed, ${evaluation.floors.length}/${evaluation.floors.length} floors protected.`, tool });
   proposedCompromise = null;

@@ -1,0 +1,63 @@
+{
+ "tag": "after",
+ "desktop": [
+  {
+   "checkpoint": "first-view",
+   "scrollY": 0,
+   "pct": 0,
+   "visible": [
+    "SECTION#studio.studio",
+    "STRONG#total-value.ledger-total",
+    "OUTPUT#budget-label.",
+    "SECTION#.panel",
+    "SECTION#.allocation-panel",
+    "TABLE#."
+   ],
+   "headline": "$1,200,000",
+   "horizontalOverflow": false
+  },
+  {
+   "checkpoint": "decision-surface",
+   "scrollY": 634,
+   "pct": 35,
+   "visible": [
+    "SECTION#studio.studio",
+    "SECTION#.panel",
+    "SECTION#.allocation-panel",
+    "TABLE#.",
+    "SECTION#.architecture"
+   ],
+   "headline": "$1,200,000",
+   "horizontalOverflow": false
+  },
+  {
+   "checkpoint": "trail-and-tools",
+   "scrollY": 1448,
+   "pct": 80,
+   "visible": [
+    "SECTION#.architecture",
+    "SECTION#.collaboration-grid",
+    "SECTION#.panel",
+    "SECTION#.panel",
+    "OL#activity-log.activity-log",
+    "SECTION#tools.tools-section"
+   ],
+   "headline": "$1,200,000",
+   "horizontalOverflow": false
+  }
+ ],
+ "mobile": {
+  "innerWidth": 390,
+  "scrollWidth": 390,
+  "horizontalOverflow": false,
+  "subTwelvePxCount": 0,
+  "subTwelveSamples": [],
+  "tapTargetsUnder44": 0,
+  "tapSamples": []
+ },
+ "motion": {
+  "prefersReducedMotion": false,
+  "animatedNow": 0,
+  "transitionsDeclared": 3
+ }
+}

@@ -1,0 +1,266 @@
+{
+  "schemaVersion": "common-ground.claude-visual-interaction.v1",
+  "workId": "WEBMCP-CG-VISUAL-INTERACTION-03",
+  "baseCommit": "0b1b323",
+  "profile": "dedicated WebMCP Chrome ~/.cache/dev-chrome-webmcp:9333 (plus two throwaway profiles for forced reduced-motion and true-390 emulation). Justin main Chrome never used; no tab proliferation.",
+  "requirements": {
+    "1_first_view_states_the_tension": {
+      "met": true,
+      "evidence": "At scrollY 0 the visible landmarks include #total-value and #budget-label. First screen shows exact $1,200,000 of a fixed $1,200,000, floors met 1/3, status 'Needs revision', each unmet floor naming its gap ($35k / $21k still missing), and the 'Ask the agent for a feasible compromise' control.",
+      "before": "first view showed SECTION.hero only; the instrument was below the fold"
+    },
+    "2_architecture_as_product_evidence": {
+      "met": true,
+      "evidence": "Four-step strip states what the code does: human sets priorities -> agent gets six named tools via document.modelContext -> deterministic rules accept/reject -> human reviews then applies. No hidden-model, deployment or orchestration claim."
+    },
+    "3_rejection_and_compromise_are_real": {
+      "met": true,
+      "rejection": {
+        "reason": "Rejected. Night Routes must stay between $100,000 and $450,000.",
+        "revision": "12:21 \u00b7 revision 0 unchanged \u2014 the shared scenario was not modified.",
+        "stateUnchanged": {
+          "floors": "1/3",
+          "status": "Needs revision"
+        }
+      },
+      "humanReviewMoment": {
+        "afterFind_applyEnabled": true,
+        "afterFind_revision": "0",
+        "note": "find enables apply but changes nothing; the scenario only advances on the human apply"
+      },
+      "apply": {
+        "revision": "12:21 \u00b7 revision 0 \u2192 1 \u2014 the shared scenario advanced.",
+        "floors": "3/3",
+        "status": "Feasible",
+        "record": "Accepted after human review. $1,200,000 committed, 3/3 floors protected."
+      }
+    },
+    "4_one_ledger_field_state_bound_motion": {
+      "met": true,
+      "evidence": "Meter + proportional commitment split render as one bordered field. Motion is transform-driven and state-bound; ambient 'breathe' animation and its two decorative divs were deleted.",
+      "reducedMotion": {
+        "prefersReducedMotion": true,
+        "meterTransitionDuration": "1e-05s",
+        "scrollBehavior": "auto",
+        "runningAnimations": 0,
+        "exactValuesStillDomText": {
+          "total": "$1,200,000",
+          "budgetLabel": "$1,200,000 of $1,200,000 committed",
+          "floors": "1/3"
+        }
+      }
+    },
+    "5_mobile_defects_repaired": {
+      "met": true,
+      "viewport": "390x844 device-emulated (mobile,touch)",
+      "subTwelvePx": {
+        "before": 70,
+        "after": 0
+      },
+      "tapTargetsUnder44": {
+        "before": 19,
+        "after": 0
+      },
+      "horizontalOverflow": {
+        "before": false,
+        "after": false
+      },
+      "note": "body overflow-x:hidden was REMOVED rather than kept; absence of overflow is now measured, not masked.",
+      "staticPosture": "unchanged - no third-party runtime, no dependency added"
+    },
+    "6_browser_evidence": {
+      "met": true,
+      "checkpoints": [
+        "first-view",
+        "decision-surface",
+        "trail-and-tools"
+      ],
+      "desktopBefore": [
+        {
+          "checkpoint": "first-view",
+          "scrollY": 0,
+          "pct": 0,
+          "visible": [
+            "SECTION#.hero",
+            "SECTION#studio.studio"
+          ],
+          "headline": "$1,200,000",
+          "horizontalOverflow": false
+        },
+        {
+          "checkpoint": "decision-surface",
+          "scrollY": 929,
+          "pct": 35,
+          "visible": [
+            "SECTION#studio.studio",
+            "SECTION#.panel",
+            "STRONG#total-value.",
+            "OUTPUT#budget-label.",
+            "SECTION#.panel",
+            "SECTION#.allocation-panel"
+          ],
+          "headline": "$1,200,000",
+          "horizontalOverflow": false
+        },
+        {
+          "checkpoint": "trail-and-tools",
+          "scrollY": 2122,
+          "pct": 80,
+          "visible": [
+            "SECTION#studio.studio",
+            "SECTION#.allocation-panel",
+            "SECTION#.collaboration-grid",
+            "SECTION#.panel",
+            "SECTION#.panel",
+            "OL#activity-log.activity-log"
+          ],
+          "headline": "$1,200,000",
+          "horizontalOverflow": false
+        }
+      ],
+      "desktopAfter": [
+        {
+          "checkpoint": "first-view",
+          "scrollY": 0,
+          "pct": 0,
+          "visible": [
+            "SECTION#studio.studio",
+            "STRONG#total-value.ledger-total",
+            "OUTPUT#budget-label.",
+            "SECTION#.panel",
+            "SECTION#.allocation-panel",
+            "TABLE#."
+          ],
+          "headline": "$1,200,000",
+          "horizontalOverflow": false
+        },
+        {
+          "checkpoint": "decision-surface",
+          "scrollY": 634,
+          "pct": 35,
+          "visible": [
+            "SECTION#studio.studio",
+            "SECTION#.panel",
+            "SECTION#.allocation-panel",
+            "TABLE#.",
+            "SECTION#.architecture"
+          ],
+          "headline": "$1,200,000",
+          "horizontalOverflow": false
+        },
+        {
+          "checkpoint": "trail-and-tools",
+          "scrollY": 1448,
+          "pct": 80,
+          "visible": [
+            "SECTION#.architecture",
+            "SECTION#.collaboration-grid",
+            "SECTION#.panel",
+            "SECTION#.panel",
+            "OL#activity-log.activity-log",
+            "SECTION#tools.tools-section"
+          ],
+          "headline": "$1,200,000",
+          "horizontalOverflow": false
+        }
+      ]
+    }
+  },
+  "designDetector": {
+    "tool": "npx -y impeccable@3.6.0 detect index.html styles.css",
+    "before": "9 anti-patterns after first restructure (4 cramped-padding, 1 clipped-overflow, 2 kicker-above-heading, 2 layout-transition)",
+    "after": "0 anti-patterns"
+  },
+  "intentionalChoices": [
+    "First view is the instrument. The eyebrow-over-display-headline hero was the single most recognisable generated-UI shape on the page and it pushed the product below the fold.",
+    "Monospace for figures, Georgia for headings. Inter was dropped: the detector flags it as an overused face and Georgia was already carrying the distinctiveness.",
+    "Type floor of 12px, enforced by a four-step ramp rather than ad-hoc rem values. 70 nodes were below it before.",
+    "44x44 minimum on every control, including the allocation steppers, which were 28x28 - unusable money controls on a phone.",
+    "Motion is transform-based and state-bound. Width transitions were replaced because animating width thrashes layout.",
+    "The scenic raster is depth only and is deliberately faint; its ink/teal palette cannot lead without fighting the product's lime identity."
+  ],
+  "defectsStillOpen": [
+    {
+      "item": "src/model.js:171 emits `${budgetDelta} remains unallocated.` as a raw integer, rendering '5000 remains unallocated.' with no currency symbol.",
+      "owner": "UNASSIGNED - src/model.js is not in this lease's targets. Reported in the previous packet and still open.",
+      "severity": "medium"
+    },
+    {
+      "item": "Common Ground is unpublished: no public repo, no live https URL. Desktop's preflight confirms JustinJLeopard/common-ground-webmcp does not exist yet.",
+      "owner": "Desktop / integration",
+      "severity": "high",
+      "note": "Justin released the publication gate at 11:56 and records the video tomorrow."
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "artifacts/design-evidence/after-apply.png",
+      "sha256": "78aa229ed5ce26032eecf635dab4e2a887ee9123226c30c77f60bc0a13b2a950"
+    },
+    {
+      "path": "artifacts/design-evidence/after-decision-surface.png",
+      "sha256": "1a36968827e41f64f55d8dfce3289b676b5d5d2310c1c032f9241c2cbcf80c70"
+    },
+    {
+      "path": "artifacts/design-evidence/after-design.json",
+      "sha256": "9c0de8c2f9339b5d8d251e9bfa306831540fc429de2a2e9382b41a9b2a66415e"
+    },
+    {
+      "path": "artifacts/design-evidence/after-find.png",
+      "sha256": "aa84b475affc913e9756baa60b9bcb4aec6bd8f03b4327f5a92390be0ca5eb54"
+    },
+    {
+      "path": "artifacts/design-evidence/after-first-view.png",
+      "sha256": "2211494f0c115f96f2d2d81f3c0bc4f00f7e296cc684ec9201574e8eca41a794"
+    },
+    {
+      "path": "artifacts/design-evidence/after-mobile390.png",
+      "sha256": "bcc191fdcd1456c5c96cee507634a5b9ab4cf8a31b2ca99819be268fe10eadfb"
+    },
+    {
+      "path": "artifacts/design-evidence/after-rejection.png",
+      "sha256": "e793502287186937a2bfd5799bc141adc716096c63c4c0e24e27e0ddd001cf24"
+    },
+    {
+      "path": "artifacts/design-evidence/after-trail-and-tools.png",
+      "sha256": "3c4885e5c597d125e37cb6202b66f455f5cda9d5d73089ac2be79c3f300a0e8c"
+    },
+    {
+      "path": "artifacts/design-evidence/before-decision-surface.png",
+      "sha256": "2b88b7e8e7e679d6f5d5d1486fdba6426b8bde9dab271c3cbdc17a5b9b6026f9"
+    },
+    {
+      "path": "artifacts/design-evidence/before-design.json",
+      "sha256": "6ea3c348469b361466c7af0517bfab283e5b3882d1984724360b1b36406662d5"
+    },
+    {
+      "path": "artifacts/design-evidence/before-first-view.png",
+      "sha256": "91f8c5254559f70075f040762aa59e1eef0de093115979d6b99c42c08e7f122b"
+    },
+    {
+      "path": "artifacts/design-evidence/before-mobile390.png",
+      "sha256": "22c880875c894a466bdb8349dd56c504dbd770125c227f8cc540b703d6d07d81"
+    },
+    {
+      "path": "artifacts/design-evidence/before-trail-and-tools.png",
+      "sha256": "27348583acdffb5768b3eb516fab8748ccca4290fe77eb00a62462eec161fce2"
+    },
+    {
+      "path": "artifacts/design-evidence/interaction.json",
+      "sha256": "8c321aec2224cbaf14ab2b83e9e7c3ece49c604eae71c004e6c505c69c5681df"
+    },
+    {
+      "path": "artifacts/design-evidence/reduced-motion.png",
+      "sha256": "fd929703fad42b91cf385016e450b983d33e097f463da505b573144d7fd617ca"
+    }
+  ],
+  "targetsReleased": [
+    "index.html",
+    "styles.css",
+    "src/app.js",
+    "assets/civic-ledger-field.png",
+    "design-qa.md",
+    "artifacts/design-evidence.json",
+    "artifacts/design-evidence/"
+  ]
+}

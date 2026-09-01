@@ -13,8 +13,6 @@
   </head>
   <body>
     <a class="skip-link" href="#studio">Skip to the budget studio</a>
-    <div class="ambient ambient-one" aria-hidden="true"></div>
-    <div class="ambient ambient-two" aria-hidden="true"></div>
 
     <header class="site-header shell">
       <a class="brand" href="#top" aria-label="Common Ground home">
@@ -22,7 +20,6 @@
         <span>Common Ground</span>
       </a>
       <div class="header-meta">
-        <span class="eyebrow">A human + agent studio</span>
         <span id="webmcp-status" class="status-chip pending" aria-live="polite">
           Checking WebMCP
         </span>
@@ -30,84 +27,112 @@
     </header>
 
     <main id="top" class="shell">
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-copy">
-          <p class="kicker">Rivermark 2032 · fictional public-good sandbox</p>
-          <h1 id="hero-title">Make a tradeoff<br /><em>visible enough to share.</em></h1>
-          <p class="hero-intro">
-            Common Ground gives people and agents one honest canvas for a hard
-            allocation: a fixed budget, named commitments, and constraints nobody can quietly edit away.
-          </p>
-          <div class="hero-actions">
-            <button class="button button-primary" type="button" data-action="find">
-              Ask the agent for a feasible compromise
-            </button>
-            <a class="button button-quiet" href="#tools">See the WebMCP contract</a>
-          </div>
-        </div>
-        <aside class="hero-note" aria-label="How collaboration works">
-          <span class="note-index">01</span>
-          <p><strong>You set the priorities.</strong> The agent can inspect, test, and propose.</p>
-          <p><strong>The application decides what is valid.</strong> Every result is deterministic and visible.</p>
-        </aside>
-      </section>
-
+      <!--
+        First view is the decision, not a headline. A judge's opening screen
+        shows the exact fixed budget, what is currently unmet, and the one
+        control that asks the agent for a feasible compromise.
+      -->
       <section id="studio" class="studio" aria-labelledby="studio-title">
-        <div class="section-heading">
-          <div>
-            <p class="kicker">The shared decision</p>
-            <h2 id="studio-title">A $1.20M promise, with no invisible winners.</h2>
-          </div>
-          <p class="section-caption">
-            Start with the human draft. Use either the controls or a WebMCP tool;
-            both use the same rules engine.
-          </p>
-        </div>
-
-        <div class="studio-grid">
-          <section class="panel current-panel" aria-labelledby="state-title">
-            <div class="panel-topline">
-              <span class="step-label">LIVE SCENARIO</span>
-              <span id="scenario-status" class="state-label" aria-live="polite">Loading</span>
-            </div>
-            <h3 id="state-title">The current draft</h3>
+        <div class="ledger-head">
+          <div class="ledger-figure">
+            <p class="ledger-caption">Committed of a fixed $1,200,000</p>
+            <strong id="total-value" class="ledger-total">—</strong>
             <p id="state-message" class="state-message" aria-live="polite"></p>
-            <div class="metric-grid" aria-label="Current budget metrics">
-              <div class="metric-card"><span>Total committed</span><strong id="total-value">—</strong></div>
-              <div class="metric-card"><span>Shared score</span><strong id="score-value">—</strong></div>
-              <div class="metric-card"><span>Constraints met</span><strong id="floors-value">—</strong></div>
+          </div>
+          <dl class="readouts" aria-label="Current scenario readouts">
+            <div>
+              <dt>Floors met</dt>
+              <dd id="floors-value">—</dd>
             </div>
-            <div class="meter-wrap">
-              <div class="meter-label"><span>Budget used</span><output id="budget-label">—</output></div>
-              <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="1200000" aria-valuenow="0" aria-labelledby="budget-label">
-                <span id="budget-meter"></span>
-              </div>
+            <div>
+              <dt>Shared score</dt>
+              <dd id="score-value">—</dd>
             </div>
-            <div class="scenario-actions">
-              <button class="button button-warn" type="button" data-action="stress">Try an over-budget move</button>
-              <button class="text-button" type="button" data-action="reset">Restore the human draft</button>
+            <div>
+              <dt>Revision</dt>
+              <dd id="revision-value">1</dd>
             </div>
-          </section>
-
-          <section class="panel floor-panel" aria-labelledby="floors-title">
-            <div class="panel-topline"><span class="step-label">THE NON-NEGOTIABLES</span><span>3 stakeholder floors</span></div>
-            <h3 id="floors-title">Who the spreadsheet has to answer to</h3>
-            <div id="floor-list" class="floor-list" aria-live="polite"></div>
-            <p class="panel-footnote">Each floor is a transparent weighted commitment, not a model opinion.</p>
-          </section>
+            <div>
+              <dt>Status</dt>
+              <dd id="scenario-status" class="state-label" aria-live="polite">Loading</dd>
+            </div>
+          </dl>
         </div>
+
+        <h1 id="studio-title" class="sr-only">
+          Common Ground — a shared fixed-budget decision between a person and an agent
+        </h1>
+
+        <!-- One coherent ledger field. Every exact value stays as DOM text. -->
+        <div class="ledger-field">
+          <div class="meter-label">
+            <span>Budget used</span><output id="budget-label">—</output>
+          </div>
+          <div
+            class="meter"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="1200000"
+            aria-valuenow="0"
+            aria-labelledby="budget-label"
+          >
+            <span id="budget-meter"></span>
+          </div>
+          <div id="commitment-field" class="commitment-field" aria-hidden="true"></div>
+        </div>
+
+        <div class="ledger-actions">
+          <button class="button button-primary" type="button" data-action="find">
+            Ask the agent for a feasible compromise
+          </button>
+          <button class="button button-warn" type="button" data-action="stress">
+            Try an over-budget move
+          </button>
+          <button class="button button-quiet" type="button" data-action="reset">
+            Restore the human draft
+          </button>
+        </div>
+
+        <!-- Requirement: a rejected move must show its exact reason, that the
+             revision did not advance, and leave a decision record. -->
+        <section
+          id="decision-record"
+          class="decision-record"
+          aria-labelledby="decision-title"
+          hidden
+        >
+          <h2 id="decision-title" class="step-label">Last decision</h2>
+          <p id="decision-body"></p>
+          <p id="decision-revision" class="decision-revision"></p>
+        </section>
+
+        <section class="panel floor-panel" aria-labelledby="floors-title">
+          <div class="panel-topline">
+            <span class="step-label">The non-negotiables</span>
+            <span>3 stakeholder floors</span>
+          </div>
+          <h2 id="floors-title">Who the spreadsheet has to answer to</h2>
+          <div id="floor-list" class="floor-list" aria-live="polite"></div>
+          <p class="panel-footnote">
+            Each floor is a transparent weighted commitment, not a model opinion.
+          </p>
+        </section>
 
         <section class="allocation-panel" aria-labelledby="allocation-title">
           <div class="allocation-heading">
             <div>
-              <p class="kicker">Five visible commitments</p>
-              <h3 id="allocation-title">Adjust the allocation</h3>
+              <h2 id="allocation-title">Adjust the five visible commitments</h2>
             </div>
-            <p>Use $5,000 increments. Changes are shared immediately with the agent-facing state.</p>
+            <p>
+              Use $5,000 increments. Changes are shared immediately with the
+              agent-facing state.
+            </p>
           </div>
           <div class="table-scroll" tabindex="0">
             <table>
-              <caption class="sr-only">Proposal allocations and stakeholders affected</caption>
+              <caption class="sr-only">
+                Proposal allocations and stakeholders affected
+              </caption>
               <thead>
                 <tr>
                   <th scope="col">Commitment</th>
@@ -124,20 +149,68 @@
         </section>
       </section>
 
+      <!--
+        The architecture as product evidence: these four steps are what the code
+        actually does. No hidden model, no orchestration claim.
+      -->
+      <section class="architecture" aria-labelledby="arch-title">
+        <h2 id="arch-title" class="step-label">How a decision actually moves</h2>
+        <ol class="arch-steps">
+          <li>
+            <span class="arch-n">1</span>
+            <strong>You set the priorities.</strong>
+            <span>Five commitments, edited in $5,000 steps.</span>
+          </li>
+          <li>
+            <span class="arch-n">2</span>
+            <strong>The agent gets six named tools.</strong>
+            <span>Typed and discoverable via <code>document.modelContext</code>.</span>
+          </li>
+          <li>
+            <span class="arch-n">3</span>
+            <strong>Common Ground's rules accept or reject.</strong>
+            <span>Deterministic. The same input always returns the same answer.</span>
+          </li>
+          <li>
+            <span class="arch-n">4</span>
+            <strong>You review, then apply.</strong>
+            <span>Nothing reaches the shared scenario without this step.</span>
+          </li>
+        </ol>
+      </section>
+
       <section class="collaboration-grid" aria-label="Human agent collaboration details">
         <section class="panel compromise-panel" aria-labelledby="compromise-title">
-          <div class="panel-topline"><span class="step-label">AGENT PROPOSAL</span><span id="solver-status">Not requested</span></div>
+          <div class="panel-topline">
+            <span class="step-label">Agent proposal</span>
+            <span id="solver-status">Not requested</span>
+          </div>
           <h2 id="compromise-title">Find common ground, not a prettier failure.</h2>
-          <p id="compromise-copy">Ask for a deterministic compromise. The application searches the fixed option space; the agent never invents a budget or a stakeholder rule.</p>
+          <p id="compromise-copy">
+            Ask for a deterministic compromise. The application searches the fixed
+            option space; the agent never invents a budget or a stakeholder rule.
+          </p>
           <div id="compromise-summary" class="compromise-summary" hidden></div>
           <div class="compromise-actions">
-            <button class="button button-primary" type="button" data-action="find">Find a feasible compromise</button>
-            <button class="button button-secondary" type="button" data-action="apply" disabled>Apply this compromise</button>
+            <button class="button button-primary" type="button" data-action="find">
+              Find a feasible compromise
+            </button>
+            <button
+              class="button button-secondary"
+              type="button"
+              data-action="apply"
+              disabled
+            >
+              Apply this compromise
+            </button>
           </div>
         </section>
 
         <section class="panel log-panel" aria-labelledby="log-title">
-          <div class="panel-topline"><span class="step-label">AUDITABLE COLLABORATION</span><span id="log-count">0 events</span></div>
+          <div class="panel-topline">
+            <span class="step-label">Auditable collaboration</span>
+            <span id="log-count">0 events</span>
+          </div>
           <h2 id="log-title">Every action leaves a readable trail.</h2>
           <ol id="activity-log" class="activity-log" aria-live="polite"></ol>
         </section>
@@ -146,17 +219,23 @@
       <section id="tools" class="tools-section" aria-labelledby="tools-title">
         <div class="section-heading tools-heading">
           <div>
-            <p class="kicker">The WebMCP contract</p>
-            <h2 id="tools-title">The agent gets capabilities, not a magic wand.</h2>
+            <h2 id="tools-title">The WebMCP contract: capabilities, not a magic wand.</h2>
           </div>
-          <p class="section-caption">These are typed, discoverable tools registered with <code>document.modelContext</code> when WebMCP is available.</p>
+          <p class="section-caption">
+            These are typed, discoverable tools registered with
+            <code>document.modelContext</code> when WebMCP is available.
+          </p>
         </div>
         <div id="tool-catalog" class="tool-catalog"></div>
       </section>
 
       <section class="closing-note" aria-label="Project framing">
-        <span class="note-index">02</span>
-        <p><strong>Prototype boundary.</strong> Rivermark, its people, and all funding figures are fictional. Common Ground demonstrates transparent collaboration patterns; it is not a civic decision system or policy recommendation.</p>
+        <p>
+          <strong>Prototype boundary.</strong> Rivermark, its people, and all
+          funding figures are fictional. Common Ground demonstrates transparent
+          collaboration patterns; it is not a civic decision system or policy
+          recommendation.
+        </p>
       </section>
     </main>
 

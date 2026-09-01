@@ -1,0 +1,47 @@
+{
+ "initial": {
+  "revision": "0",
+  "total": "$1,200,000",
+  "floors": "1/3",
+  "status": "Needs revision",
+  "decisionShown": false,
+  "decisionClass": "decision-record",
+  "decisionBody": "",
+  "decisionRevision": "",
+  "applyEnabled": false
+ },
+ "rejectionTool": "{\n  \"status\": \"Completed\",\n  \"output\": {\n    \"ok\": false,\n    \"reason\": \"invalid_amount\",\n    \"message\": \"Night Routes must stay between $100,000 and $450,000.\"\n  }\n}",
+ "afterRejection": {
+  "revision": "0",
+  "total": "$1,200,000",
+  "floors": "1/3",
+  "status": "Needs revision",
+  "decisionShown": true,
+  "decisionClass": "decision-record rejected",
+  "decisionBody": "Rejected. Night Routes must stay between $100,000 and $450,000.",
+  "decisionRevision": "12:21 · revision 0 unchanged — the shared scenario was not modified.",
+  "applyEnabled": false
+ },
+ "afterFind": {
+  "revision": "0",
+  "total": "$1,200,000",
+  "floors": "1/3",
+  "status": "Needs revision",
+  "decisionShown": true,
+  "decisionClass": "decision-record rejected",
+  "decisionBody": "Rejected. Night Routes must stay between $100,000 and $450,000.",
+  "decisionRevision": "12:21 · revision 0 unchanged — the shared scenario was not modified.",
+  "applyEnabled": true
+ },
+ "afterApply": {
+  "revision": "1",
+  "total": "$1,200,000",
+  "floors": "3/3",
+  "status": "Feasible",
+  "decisionShown": true,
+  "decisionClass": "decision-record accepted",
+  "decisionBody": "Accepted after human review. $1,200,000 committed, 3/3 floors protected.",
+  "decisionRevision": "12:21 · revision 0 → 1 — the shared scenario advanced.",
+  "applyEnabled": false
+ }
+}
