@@ -1,0 +1,20 @@
+{
+ "tag": "before",
+ "port": "8102",
+ "checkpoints": [
+  "Script ran on page and returned:\n\n{\"checkpoint\":\"ledger\",\"scrollY\":0,\"pct\":0,\"visible\":[\"SECTION#.hero\",\"SECTION#studio.studio\"],\"headlineTotal\":\"$1M\",\"horizontalOverflow\":false}",
+  "Script ran on page and returned:\n\n{\"checkpoint\":\"allocation-table\",\"scrollY\":979,\"pct\":35,\"visible\":[\"SECTION#studio.studio\",\"SECTION#.panel\",\"STRONG#total-value.\",\"OUTPUT#budget-label.\",\"SECTION#.panel\",\"SECTION#.allocation-panel\"],\"headlineTotal\":\"$1M\",\"horizontalOverflow\":false}",
+  "Script ran on page and returned:\n\n{\"checkpoint\":\"activity-trail\",\"scrollY\":2237,\"pct\":80,\"visible\":[\"SECTION#studio.studio\",\"SECTION#.collaboration-grid\",\"SECTION#.panel\",\"SECTION#.panel\",\"OL#activity-log.activity-log\",\"SECTION#tools.tools-section\"],\"headlineTotal\":\"$1M\",\"horizontalOverflow\":false}"
+ ],
+ "tools": [
+  "get_scenario_state",
+  "set_allocation",
+  "evaluate_tradeoffs",
+  "find_feasible_compromise",
+  "apply_compromise",
+  "reset_scenario"
+ ],
+ "rejection": "{\n  \"status\": \"Completed\",\n  \"output\": {\n    \"ok\": false,\n    \"reason\": \"invalid_amount\",\n    \"message\": \"Night Routes must stay between $100,000 and $450,000.\"\n  }\n}",
+ "headline": "Script ran on page and returned:\n\n{\"headlineTotal\":\"$1M\",\"budgetLabel\":\"$1M of $1M committed\",\"floors\":\"3/3\",\"score\":\"95.4/100\",\"latestActivity\":\"05 Agent · Applied the shared compromise The live scenario is now feasible: $1M committed, 3/3 floors protected. apply_compromise · 12:06\"}",
+ "unallocatedLabel": "Script ran on page and returned:\n\n{\"headlineTotal\":\"$1M\",\"budgetLabel\":\"$5k unallocated\",\"floors\":\"3/3\",\"score\":\"95.3/100\",\"latestActivity\":\"06 Agent · Updated a commitment Night Routes is now $345k. The rules engine recalculated every floor. set_allocation · 12:06\"}"
+}

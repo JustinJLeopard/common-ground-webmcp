@@ -148,12 +148,21 @@ function renderFloors(evaluation) {
 function renderMetrics(evaluation) {
   const constraintsMet = evaluation.floors.filter((floor) => floor.met).length;
   const percent = Math.max(0, Math.min(100, (evaluation.total / BUDGET) * 100));
-  const totalLabel = formatCompactMoney(evaluation.total);
+  // Exact currency for the headline total and the over/under label.
+  //
+  // Compact notation cannot express this product's own granularity. Allocations
+  // move in $5,000 steps and the solver searches a $25,000 grid, but compact
+  // rounds to $100,000 steps at the millions scale: $1,200,000 and $1,195,000
+  // both render "$1.2M", and with maximumFractionDigits:0 both render "$1M".
+  // That is not a rounding preference, it is the page failing to show the
+  // difference between fully allocated and $5,000 short. Dense table cells and
+  // floor chips keep formatCompactMoney, where width is genuinely tight.
+  const totalLabel = formatMoney(evaluation.total);
   const budgetText = evaluation.budgetDelta === 0
-    ? `${totalLabel} of ${formatCompactMoney(BUDGET)} committed`
+    ? `${totalLabel} of ${formatMoney(BUDGET)} committed`
     : evaluation.budgetDelta > 0
-      ? `${formatCompactMoney(evaluation.budgetDelta)} unallocated`
-      : `${formatCompactMoney(Math.abs(evaluation.budgetDelta))} over budget`;
+      ? `${formatMoney(evaluation.budgetDelta)} unallocated`
+      : `${formatMoney(Math.abs(evaluation.budgetDelta))} over budget`;
   dom.totalValue.textContent = totalLabel;
   dom.scoreValue.textContent = `${evaluation.score}/100`;
   dom.floorsValue.textContent = `${constraintsMet}/${evaluation.floors.length}`;
@@ -262,14 +271,14 @@ function setAllocation(proposalId, rawAmount, actor = "Human", source = "control
     const overage = evaluation.total - BUDGET;
     const message = `Rejected: that change would break the fixed budget by ${formatMoney(overage)}.`;
     setFeedback(message);
-    addActivity({ actor, action: "Rejected an over-budget move", detail: `${proposal.name} cannot increase to ${formatCompactMoney(amount)} without removing ${formatCompactMoney(overage)} elsewhere.`, tool: source.startsWith("tool") ? "set_allocation" : null });
+    addActivity({ actor, action: "Rejected an over-budget move", detail: `${proposal.name} cannot increase to ${formatMoney(amount)} without removing ${formatMoney(overage)} elsewhere.`, tool: source.startsWith("tool") ? "set_allocation" : null });
     render();
     return { ok: false, reason: "budget_exceeded", proposalId, amount, overage, evaluation: publicEvaluation(evaluation) };
   }
   state = { allocations: candidate, revision: state.revision + 1 };
   proposedCompromise = null;
   setFeedback(`${proposal.name} is now ${formatMoney(amount)}. The shared scenario was updated.`, "ok");
-  addActivity({ actor, action: "Updated a commitment", detail: `${proposal.name} is now ${formatCompactMoney(amount)}. The rules engine recalculated every floor.`, tool: source.startsWith("tool") ? "set_allocation" : null });
+  addActivity({ actor, action: "Updated a commitment", detail: `${proposal.name} is now ${formatMoney(amount)}. The rules engine recalculated every floor.`, tool: source.startsWith("tool") ? "set_allocation" : null });
   render();
   return { ok: true, proposalId, amount, evaluation: publicEvaluation() };
 }
@@ -315,7 +324,7 @@ function applyCompromise(actor = "Human", tool = null) {
   state = { allocations: { ...proposedCompromise.allocations }, revision: state.revision + 1 };
   const evaluation = evaluateScenario(state.allocations);
   setFeedback("Compromise applied. The new allocation is feasible and every floor is protected.", "ok");
-  addActivity({ actor, action: "Applied the shared compromise", detail: `The live scenario is now feasible: ${formatCompactMoney(evaluation.total)} committed, ${evaluation.floors.length}/${evaluation.floors.length} floors protected.`, tool });
+  addActivity({ actor, action: "Applied the shared compromise", detail: `The live scenario is now feasible: ${formatMoney(evaluation.total)} committed, ${evaluation.floors.length}/${evaluation.floors.length} floors protected.`, tool });
   proposedCompromise = null;
   render();
   return { ok: true, evaluation: publicEvaluation(evaluation) };
@@ -340,7 +349,7 @@ const WEBMCP_TOOLS = [
     annotations: { readOnlyHint: true },
     execute: async () => {
       const result = publicEvaluation();
-      addActivity({ actor: "Agent", action: "Read the shared scenario", detail: `Observed ${formatCompactMoney(result.total)} and ${result.constraintsMet}/${result.constraintsTotal} protected floors.`, tool: "get_scenario_state" });
+      addActivity({ actor: "Agent", action: "Read the shared scenario", detail: `Observed ${formatMoney(result.total)} and ${result.constraintsMet}/${result.constraintsTotal} protected floors.`, tool: "get_scenario_state" });
       render();
       return safeResult(result);
     },

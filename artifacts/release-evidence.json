@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "common-ground.claude-source-evidence.v1",
+  "workId": "WEBMCP-CG-BUDGET-EVIDENCE-02",
+  "role": "claude-general as sole writer for this packet",
+  "baseCommit": "51f2a13",
+  "recordedAt": "2026-09-01T12:07:00-04:00",
+  "defect": {
+    "category": "correctness / information design",
+    "severity": "high",
+    "summary": "Budget-scale figures used compact currency notation, which cannot resolve the product's own $5,000 granularity.",
+    "detail": "compactCurrency (src/app.js:17-22) uses notation:'compact' with maximumFractionDigits:0. Allocations move in $5,000 steps and the solver searches a $25,000 grid, but compact rounds to $100,000 steps at the millions scale. $1,200,000 and $1,195,000 both rendered '$1M'. The page could not show the difference between a fully committed budget and one $5,000 short.",
+    "notAFractionDigitsSetting": "Every compact configuration collides: maximumFractionDigits 0, 1 and 2 and maximumSignificantDigits:3 all render $1,200,000 and $1,195,000 identically. Asserted in tests/model.test.js so the assumption fails loudly if Intl behaviour ever changes."
+  },
+  "repair": {
+    "summary": "Use the existing exact formatMoney (src/app.js:50) for every budget-scale figure; keep compact for dense cells.",
+    "leaseScope": [
+      "headline total",
+      "over/under-budget label"
+    ],
+    "beyondLiteralScope": {
+      "changed": [
+        "rejection activity message (amount + overage)",
+        "commitment-updated activity message",
+        "apply-compromise activity message (states the total)",
+        "get_scenario_state activity message (states the total)"
+      ],
+      "reasoning": "These restate budget-scale or user-specified figures. Leaving them compact would print '$1,200,000' in the headline and '$1M committed' in the activity trail on the same screen, and the demo's key beat would echo a $1,195,000 request back as '$1M'.",
+      "revert": "git diff 51f2a13 -- src/app.js  (the four addActivity call sites)"
+    },
+    "deliberatelyUnchanged": [
+      "reference target cells (131-132)",
+      "floor chips (141,143)",
+      "delta list (218)"
+    ]
+  },
+  "proof": {
+    "npmTest": "8 passing, 0 failing",
+    "npmRunVerify": "Verified 7 source files and 6 WebMCP tools.",
+    "gitDiffCheck": "clean",
+    "browser": {
+      "profile": "dedicated WebMCP profile ~/.cache/dev-chrome-webmcp:9333; Justin main Chrome never used",
+      "toolDiscovery": {
+        "before": [
+          "get_scenario_state",
+          "set_allocation",
+          "evaluate_tradeoffs",
+          "find_feasible_compromise",
+          "apply_compromise",
+          "reset_scenario"
+        ],
+        "after": [
+          "get_scenario_state",
+          "set_allocation",
+          "evaluate_tradeoffs",
+          "find_feasible_compromise",
+          "apply_compromise",
+          "reset_scenario"
+        ],
+        "exactlySix": true
+      },
+      "rejectedInvalidAllocation": "set_allocation night-routes=1195000 -> ok:false reason:invalid_amount (both before and after)",
+      "headlineAfterApply": {
+        "before": "$1M",
+        "after": "$1,200,000"
+      },
+      "budgetLabelAfterApply": {
+        "before": "$1M of $1M committed",
+        "after": "$1,200,000 of $1,200,000 committed"
+      },
+      "fiveThousandShort": {
+        "before": {
+          "headline": "$1M",
+          "label": "$5k unallocated",
+          "collision": "headline identical to fully-committed state"
+        },
+        "after": {
+          "headline": "$1,195,000",
+          "label": "$5,000 unallocated",
+          "collision": "none; distinguishable"
+        }
+      },
+      "scrollCheckpoints": [
+        "Script ran on page and returned:\n\n{\"checkpoint\":\"ledger\",\"scrollY\":0,\"pct\":0,\"visible\":[\"SECTION#.hero\",\"SECTION#studio.studio\"],\"headlineTotal\":\"$1,195,000\",\"horizontalOverflow\":false}",
+        "Script ran on page and returned:\n\n{\"checkpoint\":\"allocation-table\",\"scrollY\":979,\"pct\":35,\"visible\":[\"SECTION#studio.studio\",\"SECTION#.panel\",\"STRONG#total-value.\",\"OUTPUT#budget-label.\",\"SECTION#.panel\",\"SECTION#.allocation-panel\"],\"headlineTotal\":\"$1,195,000\",\"horizontalOverflow\":false}",
+        "Script ran on page and returned:\n\n{\"checkpoint\":\"activity-trail\",\"scrollY\":2238,\"pct\":80,\"visible\":[\"SECTION#studio.studio\",\"SECTION#.collaboration-grid\",\"SECTION#.panel\",\"SECTION#.panel\",\"OL#activity-log.activity-log\",\"SECTION#tools.tools-section\"],\"headlineTotal\":\"$1,195,000\",\"horizontalOverflow\":false}"
+      ]
+    }
+  },
+  "evidenceFiles": [
+    {
+      "path": "artifacts/release-evidence/after-activity-trail.png",
+      "sha256": "d592a8dcf0a4ed7299055eb764b392a6da2c535435462393b00abec76e6c759e"
+    },
+    {
+      "path": "artifacts/release-evidence/after-allocation-table.png",
+      "sha256": "2acb3f87add92d947ed54646c43f7ab5da31e10877d913bf401161f5e38041a9"
+    },
+    {
+      "path": "artifacts/release-evidence/after-ledger.png",
+      "sha256": "442486e6ba8f3a9583b4fbc4484790fb70671c11abc3d2b78bea94aa87ce9874"
+    },
+    {
+      "path": "artifacts/release-evidence/after.json",
+      "sha256": "13c58ae37a6dc4c13a60642f315ef895f568cebed056571003fe50d1d86640b0"
+    },
+    {
+      "path": "artifacts/release-evidence/before-activity-trail.png",
+      "sha256": "c9d4db4958bbaaac74fe84de6ff3a3603f5655cc74f90e4b24c36ed068a620ae"
+    },
+    {
+      "path": "artifacts/release-evidence/before-allocation-table.png",
+      "sha256": "37e00d080516e1f1b5368b85a8ad6169015f73a83da98f696fe1da114c189fea"
+    },
+    {
+      "path": "artifacts/release-evidence/before-ledger.png",
+      "sha256": "feaa1c5d2cbcc778566f4a0adf510b094fe337b1b15583525eccd8a389d3a12e"
+    },
+    {
+      "path": "artifacts/release-evidence/before.json",
+      "sha256": "6f51706358dc948c75b83ca8cfa2db0dcae35b7e567bd42ef96f14507f307f8e"
+    }
+  ],
+  "remainingGaps": [
+    {
+      "item": "src/model.js:171 emits `${budgetDelta} remains unallocated.` as a raw integer \u2014 renders '5000 remains unallocated.' with no currency symbol or separator, directly beside the repaired headline.",
+      "severity": "medium",
+      "owner": "UNASSIGNED \u2014 src/model.js is NOT in this lease's mutable targets, so I did not touch it.",
+      "suggestedRepair": "format budgetDelta as currency at the point of message construction, or return the raw number and let the view format it."
+    },
+    {
+      "item": "35 text nodes render below 11px; 19 interactive elements are under the 44px touch target at a true 390px viewport.",
+      "severity": "medium",
+      "owner": "styles.css \u2014 not in this lease."
+    },
+    {
+      "item": "Common Ground is unpublished: no public repo, no live https URL. The challenge requires a judge-openable URL.",
+      "severity": "high",
+      "owner": "Desktop / integration."
+    }
+  ],
+  "targetsReleased": [
+    "src/app.js",
+    "tests/model.test.js",
+    "artifacts/release-evidence.json",
+    "artifacts/release-evidence/"
+  ]
+}

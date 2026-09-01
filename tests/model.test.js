@@ -69,3 +69,51 @@ test("apply and reset are deterministic state transitions", () => {
   assert.deepEqual(reset.state.allocations, opening.allocations);
   assert.equal(reset.state.revision, 2);
 });
+
+test("headline budget figures resolve at the product's $5,000 granularity", async () => {
+  // Why this test exists, in behavioural terms rather than as a restatement of
+  // the diff: allocations move in $5,000 steps, so the headline must be able to
+  // show the difference between a fully committed budget and one that is $5,000
+  // short. Compact notation cannot, at any configuration.
+  const compactVariants = [
+    { maximumFractionDigits: 0 },
+    { maximumFractionDigits: 1 },
+    { maximumFractionDigits: 2 },
+    { maximumSignificantDigits: 3 },
+  ];
+  for (const opts of compactVariants) {
+    const compact = new Intl.NumberFormat("en-US", {
+      style: "currency", currency: "USD", notation: "compact", ...opts,
+    });
+    assert.equal(
+      compact.format(BUDGET),
+      compact.format(BUDGET - 5_000),
+      `compact ${JSON.stringify(opts)} was expected to collide; if this fails the
+       collision assumption behind the exact-currency headline has changed`,
+    );
+  }
+
+  const exact = new Intl.NumberFormat("en-US", {
+    style: "currency", currency: "USD", maximumFractionDigits: 0,
+  });
+  assert.notEqual(exact.format(BUDGET), exact.format(BUDGET - 5_000));
+  assert.equal(exact.format(BUDGET), "$1,200,000");
+});
+
+test("renderMetrics uses exact currency for the headline total and budget label", async () => {
+  const appSource = await readFile(new URL("../src/app.js", import.meta.url), "utf8");
+  const body = appSource.slice(appSource.indexOf("function renderMetrics"));
+  // Strip comment lines: prose explaining why compact was removed legitimately
+  // mentions formatCompactMoney, and must not fail the assertion about code.
+  const block = body
+    .slice(0, body.indexOf("dom.scoreValue"))
+    .split("\n")
+    .filter((line) => !line.trim().startsWith("//"))
+    .join("\n");
+  assert.match(block, /const totalLabel = formatMoney\(evaluation\.total\)/);
+  assert.doesNotMatch(
+    block,
+    /formatCompactMoney/,
+    "the headline total and over/under-budget label must not use compact notation",
+  );
+});
