@@ -6,14 +6,13 @@
 
 ## Why this is a WebMCP product
 
-The point is not a chat box beside a dashboard. Common Ground registers seven typed, discoverable imperative WebMCP tools with `document.modelContext.registerTool()` at page load. Human controls and WebMCP tool calls run through the same deterministic state engine, so a judge can watch an agent:
+The point is not a chat box beside a dashboard. Common Ground registers five typed, discoverable advisory WebMCP tools with `document.modelContext.registerTool()` at page load. The product has one deliberate handoff: **the agent prices and proves the tradeoff; the person commits it.** A judge can watch an agent:
 
 1. inspect the current allocation and missing commitments;
 2. attempt a tempting allocation that the budget rule rejects;
-3. put an exact price on a commitment a group refuses to trade away;
-4. request a feasible compromise from the application’s fixed-grid solver;
-5. apply that recommendation to the same live scenario; and
-6. see the budget, floors, score, visible UI, and readable activity trail change together.
+3. put an exact price on Care Link Rides at $225,000;
+4. show the two exact reductions and every floor before and after; and
+5. hand the proposal to a person, whose visible Apply action alone advances the shared revision.
 
 The page uses feature detection. It remains fully usable in an ordinary browser, but the WebMCP status pill makes the distinction explicit.
 
@@ -25,15 +24,13 @@ The page uses feature detection. It remains fully usable in an ordinary browser,
 | `preview_allocation` | Read-only | Asks what one named commitment would do at a given amount; returns the exact refusal for an invalid value or overspend. Never changes the scenario — only a person moves a commitment. |
 | `evaluate_tradeoffs` | Read-only | Returns the deterministic score and every visible constraint. |
 | `find_feasible_compromise` | Read-only | Searches the fixed allocation grid for a valid compromise. |
-| `apply_compromise` | Mutation | Applies the pending deterministic recommendation to shared state. |
-| `reset_scenario` | Mutation | Restores the seeded human starting draft. |
 | `price_of_protecting` | Read-only | Answers “what would it cost to protect this?” with the exact swap, every floor before and after, and proof the budget still balances — or an honest refusal. Never mutates; applying is a human-only action. |
 
 ## Who can move the shared scenario
 
-Five of the seven tools are read-only. The agent can read the scenario, evaluate
-it, preview a change, search for a compromise, and price a protection. It cannot
-write an allocation of its own choosing at all.
+All five registered tools are read-only. The agent can read the scenario,
+evaluate it, preview a change, search for a compromise, and price a protection.
+It cannot apply a proposal, restore the draft, or write an allocation.
 
 That is a capability boundary, not a policy. An earlier version registered a
 `set_allocation` writer and relied on each individual write being validated —
@@ -42,16 +39,13 @@ an agent replayed a priced protection by writing the four amounts in
 reduction-first order, arriving at the exact proposed allocation with no human
 involved. Validating each step never constrained where the steps could lead.
 
-So the writer is gone. `preview_allocation` returns the same truthful answer,
-including the exact over-budget refusal, and mutates nothing. The remaining
-mutating tools, `apply_compromise` and `reset_scenario`, take no caller-chosen
-allocation: one applies the application's own deterministic compromise, the
-other restores the seeded draft. `npm test` proves this by computing every state
-reachable from the opening draft using only the mutating tools and asserting the
-priced protection is not among them.
-
-Direct human control is untouched: the +/− buttons and the number inputs write
-immediately, and applying a priced protection is a human-only button.
+So the agent writers are gone. `preview_allocation` returns the same truthful
+answer, including the exact over-budget refusal, and mutates nothing. The
+registered-handler regression executes every real tool and proves the shared
+allocation bytes and revision stay unchanged. Direct human control remains:
+the +/− buttons and number inputs can move a commitment, Restore creates a new
+revision, and the two visible Apply controls commit only the proposal currently
+shown for human review.
 
 ## Local run
 
@@ -107,12 +101,11 @@ above cannot drift into a persuasive number nobody re-derived.
 ## Demo journey (about 2.5 minutes)
 
 1. Start on the human draft: it spends the full budget but leaves two stakeholder floors unprotected.
-2. Use the visible **Try an over-budget move** control, or have an agent call `preview_allocation`, to show that the $1.20M limit rejects a tempting increase. The agent gets the exact refusal and the scenario does not move.
-3. Have the agent call `get_scenario_state` and `evaluate_tradeoffs`; point to the visible activity trail and exact floor deficits.
-4. Ask **what it costs to protect Care Link Rides** at $225,000, in plain words, and let the agent call `price_of_protecting`. The named losers and every floor movement appear on the shared screen, marked *pending* — the revision counter does not move.
-5. Press **Apply this swap** as a person. The revision advances and the decision record says it was accepted after human review.
-6. Call `find_feasible_compromise` and `apply_compromise` to show the same discipline on the general solver.
-7. The page moves to **Feasible**: every dollar is assigned, all three floors are protected, and the before/after state is readable in the interface.
+2. Have the agent preview Night Routes at $450,000. The application gives the exact $25,000 over-budget refusal, and revision 0 does not move.
+3. Ask **what it costs to protect Care Link Rides at $225,000**. The agent calls `price_of_protecting`; the visible request, result, and activity trail all name the same commitment and minimum.
+4. Read the proof: Night Routes falls by exactly $100,000, Heatwave Commons falls by exactly $100,000, the five commitments still total $1,200,000, and all three floors are protected.
+5. Press **Apply this swap** as a person. The revision advances exactly once, the decision record identifies Human, and the page becomes feasible.
+6. Finish on the readable activity trail. It separates the agent’s refusal and pricing from the person’s accepted decision. The generic compromise finder remains available as supporting advisory capability, not a second finale.
 
 ## Accessibility and reliability
 
@@ -134,12 +127,14 @@ above cannot drift into a persuasive number nobody re-derived.
 - valid solver output and stable proposal identities;
 - an exact, still-balanced protection swap, and an impossible one refused rather than approximated;
 - byte-equivalent determinism for the same protection question;
-- proof that pricing a protection mutates nothing, and that no registered tool can apply one;
+- the actual five-tool registration table and read-only annotations;
+- a tool-only registered-handler sequence that leaves revision and allocations unchanged;
+- Human Find/Apply, Human Price/Apply, monotonic Human Restore, and synchronized refusal controls;
 - proof that the demo figures documented above match what the model returns.
 
-`npm run verify` checks the expected source files, imperative WebMCP registration, and that exactly seven named tools are registered.
-
-The test suite additionally proves the capability boundary above by reachability, not by tool name.
+`npm run verify` checks the expected source files, imperative WebMCP registration,
+exactly five named tools, read-only annotations, and absence of human mutation
+functions from the registered executor table.
 
 ## Challenge/publication state
 

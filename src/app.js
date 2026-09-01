@@ -186,7 +186,6 @@ function renderAllocations(evaluation) {
           </div>
         </td>
         <td><span class="reference">${formatCompactMoney(proposal.humanTarget)}</span></td>
-        <td><span class="reference">${formatCompactMoney(proposal.agentTarget)}</span></td>
       </tr>
     `;
   }).join("");
@@ -517,11 +516,20 @@ function evaluateTradeoffs(actor = "Human", focus = "all", tool = null) {
 function findCompromise(actor = "Human", tool = null) {
   proposedCompromise = findFeasibleCompromise(state.allocations);
   if (!proposedCompromise) {
+    recordDecision("rejected", "No proposal. No candidate met every hard constraint on the configured grid.", state.revision);
+    setFeedback("No feasible compromise exists on the configured grid.");
     addActivity({ actor, action: "Could not find a compromise", detail: "No candidate met the hard constraints on the configured grid.", tool });
     render();
     return { ok: false, reason: "no_feasible_compromise" };
   }
   const { evaluation, considered, deltas } = proposedCompromise;
+  const revisionBefore = state.revision;
+  recordDecision(
+    "pending",
+    `Feasible proposal ready: ${formatMoney(evaluation.total)} committed and ${evaluation.floors.length}/${evaluation.floors.length} floors protected. Human action is required; nothing was applied.`,
+    revisionBefore,
+  );
+  setFeedback("Feasible proposal ready. Review the exact deltas, then a person may apply it.");
   addActivity({ actor, action: "Found a feasible compromise", detail: `Searched ${considered.toLocaleString()} deterministic candidate paths; the recommendation meets all floors at ${evaluation.score}/100.`, tool });
   render();
   return {
@@ -534,12 +542,12 @@ function findCompromise(actor = "Human", tool = null) {
   };
 }
 
-function applyCompromise(actor = "Human", tool = null) {
+function applyCompromise() {
   if (!proposedCompromise) {
     const message = "There is no pending compromise. Find one before applying it.";
     recordDecision("rejected", `Rejected. ${message}`, state.revision);
     setFeedback(message);
-    addActivity({ actor, action: "Could not apply a compromise", detail: message, tool });
+    addActivity({ actor: "Human", action: "Could not apply a compromise", detail: message });
     render();
     return { ok: false, reason: "no_pending_compromise", message };
   }
@@ -549,11 +557,11 @@ function applyCompromise(actor = "Human", tool = null) {
   const floorsMet = evaluation.floors.filter((floor) => floor.met).length;
   recordDecision(
     "accepted",
-    `Accepted after human review. ${formatMoney(evaluation.total)} committed, ${floorsMet}/${evaluation.floors.length} floors protected.`,
+    `Human accepted the reviewed compromise. ${formatMoney(evaluation.total)} committed, ${floorsMet}/${evaluation.floors.length} floors protected.`,
     revisionBefore,
   );
   setFeedback("Compromise applied. The new allocation is feasible and every floor is protected.", "ok");
-  addActivity({ actor, action: "Applied the shared compromise", detail: `The live scenario is now feasible: ${formatMoney(evaluation.total)} committed, ${evaluation.floors.length}/${evaluation.floors.length} floors protected.`, tool });
+  addActivity({ actor: "Human", action: "Applied the shared compromise", detail: `The live scenario is now feasible: ${formatMoney(evaluation.total)} committed, ${evaluation.floors.length}/${evaluation.floors.length} floors protected.` });
   proposedCompromise = null;
   pendingProtection = null;
   render();
@@ -562,6 +570,17 @@ function applyCompromise(actor = "Human", tool = null) {
 
 function askPriceOfProtecting(proposalId, rawMinimum, actor = "Human", tool = null) {
   const atLeast = Number(rawMinimum);
+  const proposal = proposalById.get(proposalId);
+  // A valid tool request becomes the visible request before its answer is
+  // rendered. The selector, amount, result, and activity trail therefore
+  // cannot describe four different conversations.
+  if (proposal && !validateAmount(proposal, atLeast)) {
+    dom.protectTarget.value = proposalId;
+    dom.protectMinimum.min = String(proposal.min);
+    dom.protectMinimum.max = String(proposal.max);
+    dom.protectMinimum.step = String(ALLOCATION_STEP);
+    dom.protectMinimum.value = String(atLeast);
+  }
   const result = priceOfProtecting(state.allocations, { proposalId, atLeast });
   pendingProtection = result;
   const revisionBefore = state.revision;
@@ -597,12 +616,12 @@ function askPriceOfProtecting(proposalId, rawMinimum, actor = "Human", tool = nu
   return result;
 }
 
-function applyProtection(actor = "Human") {
+function applyProtection() {
   if (!pendingProtection?.ok) {
     const message = "There is no priced proposal to apply. Ask what protecting a commitment costs first.";
     recordDecision("rejected", `Rejected. ${message}`, state.revision);
     setFeedback(message);
-    addActivity({ actor, action: "Could not apply a protection", detail: message });
+    addActivity({ actor: "Human", action: "Could not apply a protection", detail: message });
     render();
     return { ok: false, reason: "no_pending_protection", message };
   }
@@ -613,12 +632,12 @@ function applyProtection(actor = "Human") {
   const floorsMet = evaluation.floors.filter((floor) => floor.met).length;
   recordDecision(
     "accepted",
-    `Accepted after human review. ${applied.proposalName} is protected at ${formatMoney(applied.protectedAmount)}; ${formatMoney(evaluation.total)} committed, ${floorsMet}/${evaluation.floors.length} floors protected.`,
+    `Human accepted the reviewed swap. ${applied.proposalName} is protected at ${formatMoney(applied.protectedAmount)}; ${formatMoney(evaluation.total)} committed, ${floorsMet}/${evaluation.floors.length} floors protected.`,
     revisionBefore,
   );
   setFeedback(`${applied.proposalName} is protected at ${formatMoney(applied.protectedAmount)}. A person applied this, not the agent.`, "ok");
   addActivity({
-    actor,
+    actor: "Human",
     action: "Applied a protected commitment",
     detail: `${applied.proposalName} held at ${formatMoney(applied.protectedAmount)}; revision ${revisionBefore} → ${state.revision}.`,
   });
@@ -628,12 +647,18 @@ function applyProtection(actor = "Human") {
   return { ok: true, evaluation: publicEvaluation(evaluation) };
 }
 
-function resetScenario(actor = "Human", tool = null) {
-  state = createInitialState();
+function resetScenario() {
+  const revisionBefore = state.revision;
+  state = { allocations: { ...INITIAL_ALLOCATIONS }, revision: revisionBefore + 1 };
   proposedCompromise = null;
   pendingProtection = null;
-  setFeedback("Restored the original human draft. Nothing was hidden or discarded.", "ok");
-  addActivity({ actor, action: "Restored the human draft", detail: "The exact opening priorities are back on the shared canvas.", tool });
+  recordDecision(
+    "accepted",
+    "Human restored the opening draft. The allocation returned to its original priorities without erasing revision history.",
+    revisionBefore,
+  );
+  setFeedback(`Restored the original human draft at revision ${state.revision}.`, "ok");
+  addActivity({ actor: "Human", action: "Restored the human draft", detail: `The opening priorities are back; revision ${revisionBefore} → ${state.revision}.` });
   render();
   return { ok: true, evaluation: publicEvaluation() };
 }
@@ -691,24 +716,6 @@ const WEBMCP_TOOLS = [
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true },
     execute: async () => safeResult(findCompromise("Agent", "find_feasible_compromise")),
-  },
-  {
-    name: "apply_compromise",
-    title: "Apply the pending feasible compromise",
-    description: "Apply the latest deterministic recommendation to the shared live scenario. Use only after inspecting the proposal and confirming the human intent.",
-    schemaLabel: "input: {} · output: mutation receipt + new evaluation",
-    inputSchema: { type: "object", properties: {}, additionalProperties: false },
-    annotations: { readOnlyHint: false },
-    execute: async () => safeResult(applyCompromise("Agent", "apply_compromise")),
-  },
-  {
-    name: "reset_scenario",
-    title: "Restore the opening human draft",
-    description: "Restore the exact seeded opening priorities and remove any uncommitted compromise from the shared local scenario.",
-    schemaLabel: "input: {} · output: reset state receipt",
-    inputSchema: { type: "object", properties: {}, additionalProperties: false },
-    annotations: { readOnlyHint: false },
-    execute: async () => safeResult(resetScenario("Agent", "reset_scenario")),
   },
   {
     name: "price_of_protecting",
@@ -823,4 +830,13 @@ render();
 registerWebMcpTools();
 
 // Exported for zero-dependency browser-adjacent tests and manual console inspection.
-export { applyCompromise, applyProtection, askPriceOfProtecting, evaluateTradeoffs, findCompromise, previewAllocation, resetScenario, setAllocation };
+function getAppSnapshot() {
+  return {
+    revision: state.revision,
+    allocations: { ...state.allocations },
+    hasPendingCompromise: Boolean(proposedCompromise),
+    hasPendingProtection: Boolean(pendingProtection?.ok),
+  };
+}
+
+export { applyCompromise, applyProtection, askPriceOfProtecting, evaluateTradeoffs, findCompromise, getAppSnapshot, previewAllocation, resetScenario, setAllocation };

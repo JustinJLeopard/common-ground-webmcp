@@ -62,9 +62,9 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  /* No overflow-x:hidden. It clipped positioned children (the skip link) and
-     masked layout bugs rather than fixing them. The wide table lives in its own
-     scroll container instead; verified no document overflow at 390px. */
+  /* Do not hide horizontal overflow at the document boundary: that clipped the
+     skip link and masked layout bugs. The wide table keeps its own scroller;
+     the narrow header below wraps its status instead of widening the page. */
   font-size: var(--t-body);
   line-height: 1.55;
   background:
@@ -221,6 +221,7 @@ h3 { font-family: var(--display); font-size: var(--t-h3); line-height: 1.15; let
 .commitment-field i:nth-child(5) { background: #7fd6a6; }
 
 .ledger-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin: 1.2rem 0 1.6rem; }
+.opening-handoff { margin-bottom: 1.6rem; }
 
 /* ---------- buttons: 44px minimum, everywhere ---------- */
 
@@ -342,7 +343,7 @@ td { color: var(--ink); font-size: var(--t-small); line-height: 1.45; }
 
 /* ---------- collaboration ---------- */
 
-.collaboration-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 1rem; margin-top: 1.5rem; }
+.collaboration-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-top: 1.5rem; }
 .compromise-panel p { max-width: 56ch; color: var(--muted); font-size: var(--t-small); line-height: 1.55; }
 .compromise-summary {
   margin-top: 1.1rem; padding: 0.95rem;
@@ -485,7 +486,13 @@ td { color: var(--ink); font-size: var(--t-small); line-height: 1.45; }
 
 @media (max-width: 620px) {
   .shell { width: min(100% - 28px, 1180px); }
-  .site-header { min-height: 64px; }
+  .site-header { min-height: 64px; flex-wrap: wrap; padding-block: 0.65rem; }
+  .brand { min-width: 0; }
+  .header-meta { min-width: 0; max-width: 100%; }
+  .status-chip {
+    max-width: 100%; white-space: normal; text-align: center;
+    overflow-wrap: anywhere;
+  }
   .readouts { gap: 1.1rem 1.6rem; }
   .site-footer { flex-direction: column; }
   .site-footer span:last-child { text-align: left; max-width: none; }
@@ -493,6 +500,12 @@ td { color: var(--ink); font-size: var(--t-small); line-height: 1.45; }
   .ledger-actions, .compromise-actions, .protect-actions { align-items: stretch; }
   .protect-controls { grid-template-columns: 1fr; }
   .allocation-control input { width: 100%; min-width: 96px; }
+}
+
+@media (max-width: 420px) {
+  .site-header { align-items: stretch; }
+  .header-meta { width: 100%; }
+  .status-chip { width: 100%; justify-content: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {

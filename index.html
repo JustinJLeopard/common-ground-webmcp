@@ -93,6 +93,30 @@
           </button>
         </div>
 
+        <section class="panel compromise-panel opening-handoff" aria-labelledby="compromise-title">
+          <div class="panel-topline">
+            <span class="step-label">Pending human handoff</span>
+            <span id="solver-status">Not requested</span>
+          </div>
+          <h2 id="compromise-title">The agent can prove a compromise. You decide whether it becomes real.</h2>
+          <p id="compromise-copy">
+            Ask for a deterministic compromise above. Its exact deltas appear
+            here immediately, the revision stays put, and only this human
+            commitment action can apply it.
+          </p>
+          <div id="compromise-summary" class="compromise-summary" aria-live="polite" hidden></div>
+          <div class="compromise-actions">
+            <button
+              class="button button-secondary"
+              type="button"
+              data-action="apply"
+              disabled
+            >
+              Apply this compromise as Human
+            </button>
+          </div>
+        </section>
+
         <!-- Requirement: a rejected move must show its exact reason, that the
              revision did not advance, and leave a decision record. -->
         <section
@@ -188,7 +212,7 @@
           <div class="table-scroll" tabindex="0">
             <table>
               <caption class="sr-only">
-                Proposal allocations and stakeholders affected
+                Proposal allocations, stakeholders affected, and human starting points
               </caption>
               <thead>
                 <tr>
@@ -196,7 +220,6 @@
                   <th scope="col">What it changes</th>
                   <th scope="col">Your allocation</th>
                   <th scope="col">Human starting point</th>
-                  <th scope="col">Agent compromise</th>
                 </tr>
               </thead>
               <tbody id="allocations-body"></tbody>
@@ -220,8 +243,8 @@
           </li>
           <li>
             <span class="arch-n">2</span>
-            <strong>The agent gets seven named tools.</strong>
-            <span>Typed and discoverable via <code>document.modelContext</code>.</span>
+            <strong>The agent gets five advisory tools.</strong>
+            <span>Typed, discoverable, and read-only via <code>document.modelContext</code>.</span>
           </li>
           <li>
             <span class="arch-n">3</span>
@@ -237,32 +260,6 @@
       </section>
 
       <section class="collaboration-grid" aria-label="Human agent collaboration details">
-        <section class="panel compromise-panel" aria-labelledby="compromise-title">
-          <div class="panel-topline">
-            <span class="step-label">Agent proposal</span>
-            <span id="solver-status">Not requested</span>
-          </div>
-          <h2 id="compromise-title">Find common ground, not a prettier failure.</h2>
-          <p id="compromise-copy">
-            Ask for a deterministic compromise. The application searches the fixed
-            option space; the agent never invents a budget or a stakeholder rule.
-          </p>
-          <div id="compromise-summary" class="compromise-summary" hidden></div>
-          <div class="compromise-actions">
-            <button class="button button-primary" type="button" data-action="find">
-              Find a feasible compromise
-            </button>
-            <button
-              class="button button-secondary"
-              type="button"
-              data-action="apply"
-              disabled
-            >
-              Apply this compromise
-            </button>
-          </div>
-        </section>
-
         <section class="panel log-panel" aria-labelledby="log-title">
           <div class="panel-topline">
             <span class="step-label">Auditable collaboration</span>

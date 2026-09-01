@@ -219,100 +219,28 @@ test("pricing a protection never mutates the allocation it was asked about", () 
 
 const toolTable = async () => {
   const appSource = await readFile(new URL("../src/app.js", import.meta.url), "utf8");
-  return appSource.slice(
-    appSource.indexOf("const WEBMCP_TOOLS = ["),
-    appSource.indexOf("function wireHumanControls"),
-  );
+  const start = appSource.indexOf("const WEBMCP_TOOLS = [");
+  return appSource.slice(start, appSource.indexOf("\n];", start) + 3);
 };
 
-test("no registered WebMCP tool can apply a protection", async () => {
+test("the actual registration table contains exactly five advisory tools", async () => {
   const table = await toolTable();
-  assert.ok(table.includes("price_of_protecting"));
-  // Applying a priced swap is a human action. If applyProtection ever becomes
-  // reachable from the tool table, the agent can commit the very tradeoff this
-  // product promises only a person can commit.
-  assert.doesNotMatch(table, /applyProtection/);
-  assert.match(table, /name: "price_of_protecting"[\s\S]*?readOnlyHint: true/);
-});
-
-test("no registered WebMCP tool accepts an arbitrary allocation write", async () => {
-  // The predecessor of this test asserted that applyProtection was absent from
-  // the tool table, and concluded the agent could not commit a priced swap.
-  // That was false. A registered `set_allocation` writer let an agent replay
-  // the four priced amounts in reduction-first order -- every step in range,
-  // on the $5,000 step, and under budget -- and land on the exact proposed
-  // allocation with no human click. Absence of a name is not a boundary; what
-  // matters is whether any registered surface accepts a caller-chosen amount.
-  const table = await toolTable();
-  assert.doesNotMatch(table, /name: "set_allocation"/);
-
   const blocks = table.split(/^  \{$/m).filter((block) => block.includes("name: \""));
-  assert.equal(blocks.length, 7);
-
+  assert.deepEqual(
+    blocks.map((block) => block.match(/name: "([a-z_]+)"/)[1]),
+    [
+      "get_scenario_state",
+      "preview_allocation",
+      "evaluate_tradeoffs",
+      "find_feasible_compromise",
+      "price_of_protecting",
+    ],
+  );
   for (const block of blocks) {
     const name = block.match(/name: "([a-z_]+)"/)[1];
-    const mutating = /readOnlyHint: false/.test(block);
-    if (!mutating) continue;
-    // A mutating tool may exist, but it must not take an allocation amount.
-    assert.doesNotMatch(
-      block,
-      /amount:/,
-      `${name} is mutating and accepts an amount: that is an arbitrary allocation write`,
-    );
+    assert.match(block, /readOnlyHint: true/, `${name} is not advisory`);
   }
-});
-
-test("the priced protection is unreachable through the registered mutating tools", async () => {
-  const priced = priceOfProtecting(INITIAL_ALLOCATIONS, DEMO).allocations;
-  const key = (allocations) => PROPOSALS.map(({ id }) => allocations[id]).join(":");
-
-  // Every action a registered mutating tool can perform. Neither takes a
-  // caller-chosen allocation, so the reachable set is closed and computable.
-  const AGENT_ACTIONS = [{ type: "APPLY_COMPROMISE" }, { type: "RESET_SCENARIO" }];
-
-  // This list is an assumption about the tool table, and an unchecked
-  // assumption is how the original bypass survived review: the reachable set
-  // is only meaningful if these really are the only mutating tools. Derive the
-  // real set and fail loudly if a new writer ever appears.
-  const table = await toolTable();
-  const mutating = table
-    .split(/^  \{$/m)
-    .filter((block) => /readOnlyHint: false/.test(block))
-    .map((block) => block.match(/name: "([a-z_]+)"/)[1])
-    .sort();
-  assert.deepEqual(
-    mutating,
-    ["apply_compromise", "reset_scenario"],
-    "a mutating tool appeared that this reachability proof does not model",
-  );
-
-  const seen = new Map([[key(INITIAL_ALLOCATIONS), createInitialState()]]);
-  const queue = [createInitialState()];
-  while (queue.length) {
-    const current = queue.shift();
-    for (const action of AGENT_ACTIONS) {
-      const result = reduceScenario(current, action);
-      if (!result.ok) continue;
-      const k = key(result.state.allocations);
-      if (seen.has(k)) continue;
-      seen.set(k, result.state);
-      queue.push(result.state);
-    }
-  }
-
-  // Positive control first: a reachability proof that explores nothing would
-  // "prove" anything. The agent must genuinely be able to reach the solver's
-  // own compromise, which is a state it is allowed to reach.
-  const compromise = findFeasibleCompromise(INITIAL_ALLOCATIONS);
-  assert.ok(seen.size >= 2, "closure did not explore; the search is broken, not the boundary");
-  assert.ok(seen.has(key(compromise.allocations)), "apply_compromise should be reachable");
-
-  // The actual claim.
-  assert.equal(
-    seen.has(key(priced)),
-    false,
-    `the priced protection ${key(priced)} is reachable by the agent alone; reachable set was ${[...seen.keys()].join(" | ")}`,
-  );
+  assert.doesNotMatch(table, /applyCompromise|applyProtection|resetScenario|setAllocation|readOnlyHint: false/);
 });
 
 test("the preview tool cannot assign shared state", async () => {
