@@ -6,13 +6,14 @@
 
 ## Why this is a WebMCP product
 
-The point is not a chat box beside a dashboard. Common Ground registers six typed, discoverable imperative WebMCP tools with `document.modelContext.registerTool()` at page load. Human controls and WebMCP tool calls run through the same deterministic state engine, so a judge can watch an agent:
+The point is not a chat box beside a dashboard. Common Ground registers seven typed, discoverable imperative WebMCP tools with `document.modelContext.registerTool()` at page load. Human controls and WebMCP tool calls run through the same deterministic state engine, so a judge can watch an agent:
 
 1. inspect the current allocation and missing commitments;
 2. attempt a tempting allocation that the budget rule rejects;
-3. request a feasible compromise from the application’s fixed-grid solver;
-4. apply that recommendation to the same live scenario; and
-5. see the budget, floors, score, visible UI, and readable activity trail change together.
+3. put an exact price on a commitment a group refuses to trade away;
+4. request a feasible compromise from the application’s fixed-grid solver;
+5. apply that recommendation to the same live scenario; and
+6. see the budget, floors, score, visible UI, and readable activity trail change together.
 
 The page uses feature detection. It remains fully usable in an ordinary browser, but the WebMCP status pill makes the distinction explicit.
 
@@ -26,6 +27,7 @@ The page uses feature detection. It remains fully usable in an ordinary browser,
 | `find_feasible_compromise` | Read-only | Searches the fixed allocation grid for a valid compromise. |
 | `apply_compromise` | Mutation | Applies the pending deterministic recommendation to shared state. |
 | `reset_scenario` | Mutation | Restores the seeded human starting draft. |
+| `price_of_protecting` | Read-only | Answers “what would it cost to protect this?” with the exact swap, every floor before and after, and proof the budget still balances — or an honest refusal. Never mutates; applying is a human-only action. |
 
 ## Local run
 
@@ -45,14 +47,48 @@ Then open `http://localhost:4173`.
 
 For a live WebMCP check, use Chrome with WebMCP enabled (the host has a dedicated Chrome 151 profile/launcher) and a secure or potentially trustworthy context. `localhost` is suitable for local development; the challenge’s later live URL must use the required public HTTPS-compatible route. Do not use `file://` or `about:blank` as a WebMCP test page.
 
+## The price of protecting something
+
+The opening draft holds **Care Link Rides** — door-to-door rides to medical
+appointments — at $100,000. Someone in the room says those rides cannot be cut.
+Instead of arguing about whether that is affordable, ask the application.
+
+Calling `price_of_protecting` with `{ proposalId: "care-link-rides", atLeast: 225000 }`
+against the opening draft returns this exact swap, and nothing else:
+
+| Commitment | Before | After | Change |
+| --- | --- | --- | --- |
+| Night Routes | $425,000 | $325,000 | **−$100,000** |
+| Heatwave Commons | $350,000 | $250,000 | **−$100,000** |
+| Corner Pantry Network | $225,000 | $225,000 | no change |
+| Youth Maker Hours | $100,000 | $175,000 | **+$75,000** |
+| Care Link Rides | $100,000 | **$225,000** | **+$125,000** |
+
+The five commitments still sum to exactly $1,200,000. Every floor is reported
+before and after: *Young people* moves from $35,000 short to protected,
+*Older residents* from $21,250 short to protected, and *Outer blocks* stays
+protected. Protecting the rides turns out to cost two named reductions and to
+repair both broken floors on the way — which is the argument the room should
+actually be having.
+
+Ask for something the grid cannot do and the answer is a refusal, not a near
+miss: `{ proposalId: "youth-maker-hours", atLeast: 305000 }` is inside that
+commitment's own $75,000–$350,000 band, yet no allocation on the shared grid
+reaches it without breaking the budget or a floor. The tool says so and returns
+no allocation at all.
+
+These figures are asserted by `npm test` against the model itself, so the table
+above cannot drift into a persuasive number nobody re-derived.
+
 ## Demo journey (about 2.5 minutes)
 
 1. Start on the human draft: it spends the full budget but leaves two stakeholder floors unprotected.
 2. Use the visible **Try an over-budget move** control, or have an agent call `set_allocation`, to show that the $1.20M limit rejects a tempting increase.
 3. Have the agent call `get_scenario_state` and `evaluate_tradeoffs`; point to the visible activity trail and exact floor deficits.
-4. Call `find_feasible_compromise`. The deterministic solver returns the candidate set, its deltas, score, and candidate count.
-5. Review the visible recommendation with the human, then call `apply_compromise`.
-6. The page moves to **Feasible**: every dollar is assigned, all three floors are protected, and the before/after state is readable in the interface.
+4. Ask **what it costs to protect Care Link Rides** at $225,000, in plain words, and let the agent call `price_of_protecting`. The named losers and every floor movement appear on the shared screen, marked *pending* — the revision counter does not move.
+5. Press **Apply this swap** as a person. The revision advances and the decision record says it was accepted after human review.
+6. Call `find_feasible_compromise` and `apply_compromise` to show the same discipline on the general solver.
+7. The page moves to **Feasible**: every dollar is assigned, all three floors are protected, and the before/after state is readable in the interface.
 
 ## Accessibility and reliability
 
@@ -71,9 +107,13 @@ For a live WebMCP check, use Chrome with WebMCP enabled (the host has a dedicate
 - the seeded human draft;
 - an over-budget rejection;
 - deterministic feasible-compromise selection;
-- valid solver output and stable proposal identities.
+- valid solver output and stable proposal identities;
+- an exact, still-balanced protection swap, and an impossible one refused rather than approximated;
+- byte-equivalent determinism for the same protection question;
+- proof that pricing a protection mutates nothing, and that no registered tool can apply one;
+- proof that the demo figures documented above match what the model returns.
 
-`npm run verify` checks the expected source files, imperative WebMCP registration, and all required tool names.
+`npm run verify` checks the expected source files, imperative WebMCP registration, and that exactly seven named tools are registered.
 
 ## Challenge/publication state
 

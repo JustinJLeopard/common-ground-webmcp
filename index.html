@@ -106,6 +106,63 @@
           <p id="decision-revision" class="decision-revision"></p>
         </section>
 
+        <!-- The instrument the product is actually for: put a number on the
+             thing a group refuses to trade away, before anyone argues about
+             it. Priced here, applied only by a person. -->
+        <section class="panel protect-panel" aria-labelledby="protect-title">
+          <div class="panel-topline">
+            <span class="step-label">Protect a commitment</span>
+            <span id="protect-status">Not asked</span>
+          </div>
+          <h2 id="protect-title">What would it cost to protect this?</h2>
+          <p class="protect-copy">
+            Name a commitment and the minimum it must keep. The application
+            returns the exact swap — or says plainly that no allocation can do
+            it. Asking never changes the shared scenario.
+          </p>
+          <div class="protect-controls">
+            <div class="protect-field">
+              <label for="protect-target">Commitment to protect</label>
+              <select id="protect-target">
+                <option value="night-routes">Night Routes</option>
+                <option value="heatwave-commons">Heatwave Commons</option>
+                <option value="corner-pantries">Corner Pantry Network</option>
+                <option value="youth-maker-hours">Youth Maker Hours</option>
+                <option value="care-link-rides" selected>Care Link Rides</option>
+              </select>
+            </div>
+            <div class="protect-field">
+              <label for="protect-minimum">Keep at least</label>
+              <input
+                id="protect-minimum"
+                type="number"
+                inputmode="numeric"
+                step="5000"
+                min="75000"
+                max="350000"
+                value="225000"
+              />
+            </div>
+          </div>
+          <div class="protect-actions">
+            <button class="button button-primary" type="button" data-action="ask-protection">
+              Ask what it costs
+            </button>
+            <button
+              class="button button-secondary"
+              type="button"
+              data-action="apply-protection"
+              disabled
+            >
+              Apply this swap
+            </button>
+          </div>
+          <div id="protect-result" class="protect-result" aria-live="polite" hidden></div>
+          <p class="panel-footnote">
+            The agent can price this. Only a person can apply it.
+          </p>
+        </section>
+
         <section class="panel floor-panel" aria-labelledby="floors-title">
           <div class="panel-topline">
             <span class="step-label">The non-negotiables</span>
@@ -163,7 +220,7 @@
           </li>
           <li>
             <span class="arch-n">2</span>
-            <strong>The agent gets six named tools.</strong>
+            <strong>The agent gets seven named tools.</strong>
             <span>Typed and discoverable via <code>document.modelContext</code>.</span>
           </li>
           <li>

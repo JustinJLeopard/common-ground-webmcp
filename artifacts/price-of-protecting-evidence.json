@@ -1,0 +1,178 @@
+{
+  "lease": "WEBMCP-CG-PRICE-PROTECT-04",
+  "owner": "claude-general pid 3102517 session 73b96269-9186-4e34-91e2-e2370567618d",
+  "base": "0d71fc8a29eab104c1cbb741df58264b7ff94d75",
+  "capturedBy": "dedicated WebMCP profile only (~/.cache/dev-chrome-webmcp, CDP 9333, Chrome 151.0.7922.173). Justin's main Chrome was never used.",
+  "servedFrom": "http://localhost:4173 (python3 -m http.server, repo root)",
+  "toolDiscovery": {
+    "count": 7,
+    "names": [
+      "apply_compromise",
+      "evaluate_tradeoffs",
+      "find_feasible_compromise",
+      "get_scenario_state",
+      "price_of_protecting",
+      "reset_scenario",
+      "set_allocation"
+    ],
+    "statusPill": "7 WebMCP tools live"
+  },
+  "demoCase": {
+    "request": {
+      "proposalId": "care-link-rides",
+      "atLeast": 225000
+    },
+    "protectedAmount": 225000,
+    "reductions": [
+      {
+        "name": "Night Routes",
+        "delta": -100000
+      },
+      {
+        "name": "Heatwave Commons",
+        "delta": -100000
+      }
+    ],
+    "increases": [
+      {
+        "name": "Youth Maker Hours",
+        "delta": 75000
+      },
+      {
+        "name": "Care Link Rides",
+        "delta": 125000
+      }
+    ],
+    "budgetProof": {
+      "budget": 1200000,
+      "total": 1200000,
+      "balanced": true,
+      "statement": "$1,200,000 of $1,200,000 — the five commitments still sum to the fixed budget exactly."
+    },
+    "floors": [
+      {
+        "label": "Young people",
+        "before": 305000,
+        "after": 345000,
+        "beforeMet": false,
+        "afterMet": true
+      },
+      {
+        "label": "Older residents",
+        "before": 278750,
+        "after": 368750,
+        "beforeMet": false,
+        "afterMet": true
+      },
+      {
+        "label": "Outer blocks",
+        "before": 507500,
+        "after": 461250,
+        "beforeMet": true,
+        "afterMet": true
+      }
+    ]
+  },
+  "refusalCase": {
+    "request": {
+      "proposalId": "youth-maker-hours",
+      "atLeast": 305000
+    },
+    "result": {
+      "ok": false,
+      "code": "no_feasible_allocation",
+      "message": "No allocation on the $25,000 grid protects Youth Maker Hours at $305,000 without breaking the fixed budget or a stakeholder floor.",
+      "hasAllocations": false
+    },
+    "note": "Inside the commitment declared band of 75,000..350,000, yet no allocation on the 25,000 grid reaches it. A true impossibility, not a range error."
+  },
+  "humanControl": {
+    "revisionBeforeToolCall": "0",
+    "revisionAfterToolCall": "0",
+    "revisionAfterHumanApply": "1",
+    "allocationAfterToolCall": {
+      "night-routes": "425000",
+      "heatwave-commons": "350000",
+      "corner-pantries": "225000",
+      "youth-maker-hours": "100000",
+      "care-link-rides": "100000"
+    },
+    "allocationAfterHumanApply": {
+      "night-routes": "325000",
+      "heatwave-commons": "250000",
+      "corner-pantries": "225000",
+      "youth-maker-hours": "175000",
+      "care-link-rides": "225000"
+    },
+    "appliedBy": "CDP Input.dispatchMouseEvent on [data-action=\"apply-protection\"], hit-tested to that element before dispatch"
+  },
+  "responsiveAndAccessibility": {
+    "mobile": {
+      "observedInnerWidth": 390,
+      "horizontalOverflow": false,
+      "scrollWidth": 390,
+      "textBelow12px": [],
+      "targetsUnder44px": []
+    },
+    "semantics": {
+      "protectControlsFocusable": [
+        "protect-target",
+        "protect-minimum",
+        "ask-protection",
+        "apply-protection"
+      ],
+      "resultIsDomText": true,
+      "resultAriaLive": "polite",
+      "labelledSelect": true,
+      "labelledMinimum": true,
+      "panelHeading": "What would it cost to protect this?"
+    },
+    "reducedMotion": {
+      "matches": true,
+      "totalAnimations": 0,
+      "runningAnimations": 0
+    }
+  },
+  "files": [
+    {
+      "path": "artifacts/price-of-protecting-evidence/01-desktop-before.png",
+      "bytes": 689580,
+      "sha256": "ecea722cb992cb1c0f6f36665f59fa29e60c94ee7670b5414dce6722038d3378"
+    },
+    {
+      "path": "artifacts/price-of-protecting-evidence/02-desktop-pending-before-apply.png",
+      "bytes": 539366,
+      "sha256": "b661dc79f5660313dbbf6e669c2b2f6dbc0ea9b767c6d3b03b4591db0ebdeea3"
+    },
+    {
+      "path": "artifacts/price-of-protecting-evidence/03-desktop-after-apply.png",
+      "bytes": 616284,
+      "sha256": "04dfffd85229ac7b6ceb0250710752b836722edee572ea54c51f1662c054625b"
+    },
+    {
+      "path": "artifacts/price-of-protecting-evidence/04-desktop-refusal.png",
+      "bytes": 606739,
+      "sha256": "423b017eca8339a1af328db6d81808b4758deaf864771f3990ac74245bea9e5c"
+    },
+    {
+      "path": "artifacts/price-of-protecting-evidence/05-mobile390-refusal.png",
+      "bytes": 789726,
+      "sha256": "173acee88fe22cf595941fdd1a7edb6165fbcf20ed71db27911417cf7085f2b3"
+    },
+    {
+      "path": "artifacts/price-of-protecting-evidence/05b-mobile390-pending-swap.png",
+      "bytes": 747079,
+      "sha256": "2c0c3eb8baabf3d07a4437d0e2f6bce848301d461857b3da08130138a9856f21"
+    },
+    {
+      "path": "artifacts/price-of-protecting-evidence/06-desktop-reduced-motion.png",
+      "bytes": 716765,
+      "sha256": "014b2b56941e96eb4617bad750fcd0f2b3f5413225d2d9740926baa5052fa9ff"
+    },
+    {
+      "path": "artifacts/price-of-protecting-evidence/interaction.json",
+      "bytes": 6998,
+      "sha256": "1877fe73f10f4604ee6e87546dedcdd1597bfa61fdf9e22b08d145d3e7792d14"
+    }
+  ]
+}

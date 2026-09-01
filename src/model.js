@@ -246,16 +246,29 @@ function compareAllocationKey(left, right) {
   return leftKey.localeCompare(rightKey);
 }
 
-export function findFeasibleCompromise(rawAllocations) {
-  const current = cloneAllocations(rawAllocations);
+// One grid search, two questions.
+//
+// `findFeasibleCompromise` asks "what is the best feasible plan from here?".
+// `priceOfProtecting` asks "what is the best feasible plan from here that also
+// keeps one commitment at or above a floor a person named?". Those differ only
+// by an extra hard constraint, so they must not be two searches: a second copy
+// of the tie-break chain is a second place for determinism to drift.
+//
+// `accept` is applied only after validity, so the fixed budget, the per-proposal
+// range/step rules, and every stakeholder floor stay hard constraints in both
+// cases -- a protected minimum can never buy its way past a floor.
+function searchFeasibleGrid(current, accept) {
   let best = null;
   let considered = 0;
+  let feasible = 0;
   const candidate = {};
 
   function inspectCandidate() {
     considered += 1;
     const evaluation = evaluateScenario(candidate);
     if (!evaluation.valid) return;
+    if (accept && !accept(candidate, evaluation)) return;
+    feasible += 1;
 
     const changeDistance = PROPOSALS.reduce(
       (sum, { id }) => sum + Math.abs(candidate[id] - current[id]),
@@ -310,6 +323,12 @@ export function findFeasibleCompromise(rawAllocations) {
   }
 
   search(0, BUDGET);
+  return { best, considered, feasible };
+}
+
+export function findFeasibleCompromise(rawAllocations) {
+  const current = cloneAllocations(rawAllocations);
+  const { best, considered } = searchFeasibleGrid(current, null);
   if (!best) return null;
 
   const deltas = Object.fromEntries(
@@ -321,6 +340,148 @@ export function findFeasibleCompromise(rawAllocations) {
     considered,
     method:
       "Deterministic 25,000 dollar grid search; fixed budget and all floors are hard constraints, then score and change distance break ties.",
+  };
+}
+
+export const PROTECTION_METHOD =
+  "Deterministic 25,000 dollar grid search constrained to the protected minimum; the fixed budget and every stakeholder floor stay hard constraints, then score and change distance break ties.";
+
+function protectionRefusal(proposalId, atLeast, code, message, details = {}) {
+  return {
+    ok: false,
+    request: { proposalId: proposalId ?? null, atLeast: Number.isFinite(atLeast) ? atLeast : null },
+    reason: { code, message, ...details },
+    method: PROTECTION_METHOD,
+  };
+}
+
+/**
+ * Answer "what would it cost to protect this?" with an exact swap.
+ *
+ * The contract is deliberately all-or-nothing: either there is an allocation on
+ * the shared grid that holds `proposalId` at or above `atLeast` while keeping
+ * the budget exact and every floor met, or the honest answer is no. A nearest
+ * approximation is never returned as a success -- "almost protected" is the one
+ * answer that would let a group think a commitment was safe when it was not.
+ */
+export function priceOfProtecting(rawAllocations, request = {}) {
+  const current = cloneAllocations(rawAllocations);
+  const { proposalId } = request;
+  const proposal = proposalById.get(proposalId);
+  const atLeast = Number(request.atLeast);
+
+  if (!proposal) {
+    // Deliberately does not echo the requested id back into the message. The
+    // caller can be an agent, so that string is untrusted input; the known
+    // commitment names are listed instead, and the raw id stays in a
+    // structured field that no renderer treats as markup.
+    return protectionRefusal(
+      proposalId,
+      atLeast,
+      "unknown_commitment",
+      `That is not one of the five commitments in this scenario. Ask about ${PROPOSALS.map(({ name }) => name).join(", ")}.`,
+      { known: PROPOSALS.map(({ id }) => id) },
+    );
+  }
+  if (!Number.isInteger(atLeast)) {
+    return protectionRefusal(
+      proposalId,
+      atLeast,
+      "amount_not_integer",
+      `A protected minimum for ${proposal.name} must be a whole-dollar amount.`,
+    );
+  }
+  if (atLeast % ALLOCATION_STEP !== 0) {
+    return protectionRefusal(
+      proposalId,
+      atLeast,
+      "amount_off_step",
+      `A protected minimum for ${proposal.name} must use ${exactUsd.format(ALLOCATION_STEP)} increments.`,
+      { step: ALLOCATION_STEP },
+    );
+  }
+  if (atLeast < proposal.min || atLeast > proposal.max) {
+    return protectionRefusal(
+      proposalId,
+      atLeast,
+      "amount_out_of_range",
+      `${proposal.name} only ranges from ${exactUsd.format(proposal.min)} to ${exactUsd.format(proposal.max)} in this scenario.`,
+      { min: proposal.min, max: proposal.max },
+    );
+  }
+
+  const baseline = evaluateScenario(current);
+  const { best, considered, feasible } = searchFeasibleGrid(
+    current,
+    (candidate) => candidate[proposalId] >= atLeast,
+  );
+
+  if (!best) {
+    return protectionRefusal(
+      proposalId,
+      atLeast,
+      "no_feasible_allocation",
+      `No allocation on the ${exactUsd.format(SOLVER_STEP)} grid protects ${proposal.name} at ${exactUsd.format(atLeast)} without breaking the fixed budget or a stakeholder floor.`,
+      { considered, feasible: 0 },
+    );
+  }
+
+  const changes = PROPOSALS.map((item) => {
+    const before = current[item.id];
+    const after = best.allocations[item.id];
+    const delta = after - before;
+    return {
+      proposalId: item.id,
+      name: item.name,
+      before,
+      after,
+      delta,
+      direction: delta === 0 ? "unchanged" : delta > 0 ? "increase" : "reduction",
+      label: `${item.name} ${delta === 0 ? "holds at" : delta > 0 ? "rises to" : "falls to"} ${exactUsd.format(after)}`,
+      deltaLabel: delta === 0 ? "no change" : `${delta > 0 ? "+" : "−"}${exactUsd.format(Math.abs(delta))}`,
+    };
+  });
+
+  const floors = baseline.floors.map((before, index) => {
+    const after = best.evaluation.floors[index];
+    return {
+      id: before.id,
+      label: before.label,
+      requirement: before.requirement,
+      before: before.value,
+      after: after.value,
+      beforeMet: before.met,
+      afterMet: after.met,
+      beforeGap: before.gap,
+      afterGap: after.gap,
+      movement: after.value === before.value ? "unchanged" : after.value > before.value ? "up" : "down",
+    };
+  });
+
+  const total = best.evaluation.total;
+  return {
+    ok: true,
+    request: { proposalId, atLeast },
+    proposalName: proposal.name,
+    requestedMinimum: atLeast,
+    protectedAmount: best.allocations[proposalId],
+    protectedExceedsRequest: best.allocations[proposalId] > atLeast,
+    allocations: best.allocations,
+    changes,
+    reductions: changes.filter(({ direction }) => direction === "reduction"),
+    increases: changes.filter(({ direction }) => direction === "increase"),
+    floors,
+    budgetProof: {
+      budget: BUDGET,
+      total,
+      balanced: total === BUDGET,
+      statement: `${exactUsd.format(total)} of ${exactUsd.format(BUDGET)} — the five commitments still sum to the fixed budget exactly.`,
+    },
+    evaluation: best.evaluation,
+    changeDistance: best.changeDistance,
+    considered,
+    feasible,
+    method: PROTECTION_METHOD,
   };
 }
 

@@ -1,0 +1,192 @@
+{
+  "discovery": {
+    "count": 7,
+    "names": [
+      "apply_compromise",
+      "evaluate_tradeoffs",
+      "find_feasible_compromise",
+      "get_scenario_state",
+      "price_of_protecting",
+      "reset_scenario",
+      "set_allocation"
+    ],
+    "statusPill": "7 WebMCP tools live"
+  },
+  "beforeCall": {
+    "revision": "0",
+    "protectStatus": "Not asked",
+    "protectResultVisible": false,
+    "protectResultText": "",
+    "applyDisabled": true,
+    "decision": null,
+    "decisionRevision": null,
+    "allocations": {
+      "night-routes": "425000",
+      "heatwave-commons": "350000",
+      "corner-pantries": "225000",
+      "youth-maker-hours": "100000",
+      "care-link-rides": "100000"
+    },
+    "totalValue": "$1,200,000"
+  },
+  "toolResult": {
+    "ok": true,
+    "protectedAmount": 225000,
+    "reductions": [
+      {
+        "name": "Night Routes",
+        "delta": -100000
+      },
+      {
+        "name": "Heatwave Commons",
+        "delta": -100000
+      }
+    ],
+    "increases": [
+      {
+        "name": "Youth Maker Hours",
+        "delta": 75000
+      },
+      {
+        "name": "Care Link Rides",
+        "delta": 125000
+      }
+    ],
+    "budgetProof": {
+      "budget": 1200000,
+      "total": 1200000,
+      "balanced": true,
+      "statement": "$1,200,000 of $1,200,000 — the five commitments still sum to the fixed budget exactly."
+    },
+    "floors": [
+      {
+        "label": "Young people",
+        "before": 305000,
+        "after": 345000,
+        "beforeMet": false,
+        "afterMet": true
+      },
+      {
+        "label": "Older residents",
+        "before": 278750,
+        "after": 368750,
+        "beforeMet": false,
+        "afterMet": true
+      },
+      {
+        "label": "Outer blocks",
+        "before": 507500,
+        "after": 461250,
+        "beforeMet": true,
+        "afterMet": true
+      }
+    ]
+  },
+  "pending": {
+    "revision": "0",
+    "protectStatus": "Pending — not applied",
+    "protectResultVisible": true,
+    "protectResultText": "Protecting Care Link Rides at $225,000 costs this exact swap. WHAT FALLS TO PAY FOR IT Night Routes −$100,000 Heatwave Commons −$100,000 EVERY FLOOR, BEFORE AND AFTER Young people $345,000 — protected was $35,000 short Older residents $368,750 — protected was $21,250 short Outer blocks $461,250 — protected was protected $1,200,000 of $1,200,000 — the five commitments still sum to the fixed budget exactly. Checked 1,661 allocations that hold this commitment. This is a proposal. Nothing has changed yet. The shared scenario stays at revision 0 until a person presses Apply.",
+    "applyDisabled": false,
+    "decision": "Protecting Care Link Rides at $225,000 would cost: Night Routes −$100,000, Heatwave Commons −$100,000. Pending human review — nothing applied.",
+    "decisionRevision": "12:59 · revision 0 unchanged — the shared scenario was not modified.",
+    "allocations": {
+      "night-routes": "425000",
+      "heatwave-commons": "350000",
+      "corner-pantries": "225000",
+      "youth-maker-hours": "100000",
+      "care-link-rides": "100000"
+    },
+    "totalValue": "$1,200,000"
+  },
+  "afterApply": {
+    "revision": "1",
+    "protectStatus": "Not asked",
+    "protectResultVisible": false,
+    "protectResultText": "",
+    "applyDisabled": true,
+    "decision": "Accepted after human review. Care Link Rides is protected at $225,000; $1,200,000 committed, 3/3 floors protected.",
+    "decisionRevision": "12:59 · revision 0 → 1 — the shared scenario advanced.",
+    "allocations": {
+      "night-routes": "325000",
+      "heatwave-commons": "250000",
+      "corner-pantries": "225000",
+      "youth-maker-hours": "175000",
+      "care-link-rides": "225000"
+    },
+    "totalValue": "$1,200,000"
+  },
+  "applyButtonBox": {
+    "x": 366.515625,
+    "y": 450.453125,
+    "w": 134.40625,
+    "h": 44,
+    "inViewport": true,
+    "hitIsButton": "apply-protection"
+  },
+  "refusalResult": {
+    "ok": false,
+    "code": "no_feasible_allocation",
+    "message": "No allocation on the $25,000 grid protects Youth Maker Hours at $305,000 without breaking the fixed budget or a stakeholder floor.",
+    "hasAllocations": false
+  },
+  "refusalDom": {
+    "revision": "0",
+    "protectStatus": "No allocation does this",
+    "protectResultVisible": true,
+    "protectResultText": "No allocation on the $25,000 grid protects Youth Maker Hours at $305,000 without breaking the fixed budget or a stakeholder floor. Nothing was changed. This is the honest answer, not a failure — the tool will not offer a near miss as if it protected the commitment.",
+    "applyDisabled": true,
+    "decision": "No proposal. No allocation on the $25,000 grid protects Youth Maker Hours at $305,000 without breaking the fixed budget or a stakeholder floor.",
+    "decisionRevision": "12:59 · revision 0 unchanged — the shared scenario was not modified.",
+    "allocations": {
+      "night-routes": "425000",
+      "heatwave-commons": "350000",
+      "corner-pantries": "225000",
+      "youth-maker-hours": "100000",
+      "care-link-rides": "100000"
+    },
+    "totalValue": "$1,200,000"
+  },
+  "mobile": {
+    "observedInnerWidth": 390,
+    "horizontalOverflow": false,
+    "scrollWidth": 390,
+    "textBelow12px": [],
+    "targetsUnder44px": []
+  },
+  "mobilePending": {
+    "revision": "0",
+    "protectStatus": "Pending — not applied",
+    "protectResultVisible": true,
+    "protectResultText": "Protecting Care Link Rides at $225,000 costs this exact swap. WHAT FALLS TO PAY FOR IT Night Routes −$100,000 Heatwave Commons −$100,000 EVERY FLOOR, BEFORE AND AFTER Young people $345,000 — protected was $35,000 short Older residents $368,750 — protected was $21,250 short Outer blocks $461,250 — protected was protected $1,200,000 of $1,200,000 — the five commitments still sum to the fixed budget exactly. Checked 1,661 allocations that hold this commitment. This is a proposal. Nothing has changed yet. The shared scenario stays at revision 0 until a person presses Apply.",
+    "applyDisabled": false,
+    "decision": "Protecting Care Link Rides at $225,000 would cost: Night Routes −$100,000, Heatwave Commons −$100,000. Pending human review — nothing applied.",
+    "decisionRevision": "12:59 · revision 0 unchanged — the shared scenario was not modified.",
+    "allocations": {
+      "night-routes": "425000",
+      "heatwave-commons": "350000",
+      "corner-pantries": "225000",
+      "youth-maker-hours": "100000",
+      "care-link-rides": "100000"
+    },
+    "totalValue": "$1,200,000"
+  },
+  "semantics": {
+    "protectControlsFocusable": [
+      "protect-target",
+      "protect-minimum",
+      "ask-protection",
+      "apply-protection"
+    ],
+    "resultIsDomText": true,
+    "resultAriaLive": "polite",
+    "labelledSelect": true,
+    "labelledMinimum": true,
+    "panelHeading": "What would it cost to protect this?"
+  },
+  "reducedMotion": {
+    "matches": true,
+    "totalAnimations": 0,
+    "runningAnimations": 0
+  }
+}

@@ -6,6 +6,7 @@ import {
   createInitialState,
   evaluateScenario,
   findFeasibleCompromise,
+  priceOfProtecting,
 } from "./model.js";
 
 const currency = new Intl.NumberFormat("en-US", {
@@ -45,10 +46,21 @@ const dom = {
   decisionRevision: document.querySelector("#decision-revision"),
   commitmentField: document.querySelector("#commitment-field"),
   applyButton: document.querySelector('[data-action="apply"]'),
+  protectStatus: document.querySelector("#protect-status"),
+  protectResult: document.querySelector("#protect-result"),
+  protectTarget: document.querySelector("#protect-target"),
+  protectMinimum: document.querySelector("#protect-minimum"),
+  protectApply: document.querySelector('[data-action="apply-protection"]'),
 };
 
 let state = createInitialState();
 let proposedCompromise = null;
+// The pending answer to "what would it cost to protect this?".
+//
+// Deliberately separate from proposedCompromise: a protection swap is
+// human-apply-only. No registered tool can commit it, so the agent can put an
+// exact price on a commitment without ever being able to pay it.
+let pendingProtection = null;
 let feedback = "";
 let activities = [];
 // The decision record. A rejected move must be able to show its exact reason
@@ -272,6 +284,80 @@ function renderCompromise() {
   applyButton.disabled = false;
 }
 
+function renderProtection() {
+  if (!pendingProtection) {
+    dom.protectStatus.textContent = "Not asked";
+    dom.protectResult.hidden = true;
+    dom.protectResult.innerHTML = "";
+    dom.protectApply.disabled = true;
+    return;
+  }
+
+  dom.protectResult.hidden = false;
+
+  // A refusal is a result, not an error state. "No allocation protects this"
+  // is the most useful sentence this tool can say, so it gets the same
+  // prominence as a successful swap.
+  if (!pendingProtection.ok) {
+    dom.protectStatus.textContent = "No allocation does this";
+    dom.protectApply.disabled = true;
+    dom.protectResult.className = "protect-result refused";
+    // Built as nodes with textContent, not innerHTML. A refusal message is the
+    // one string here that can be shaped by tool input, so it never becomes
+    // markup even when the model layer already declines to echo that input.
+    dom.protectResult.replaceChildren();
+    const verdict = document.createElement("p");
+    verdict.className = "protect-verdict";
+    verdict.textContent = pendingProtection.reason.message;
+    const note = document.createElement("p");
+    note.className = "protect-note";
+    note.textContent =
+      "Nothing was changed. This is the honest answer, not a failure — the tool will not offer a near miss as if it protected the commitment.";
+    dom.protectResult.append(verdict, note);
+    return;
+  }
+
+  const {
+    proposalName,
+    protectedAmount,
+    requestedMinimum,
+    protectedExceedsRequest,
+    changes,
+    reductions,
+    floors,
+    budgetProof,
+    feasible,
+  } = pendingProtection;
+
+  const losers = reductions.length
+    ? reductions.map(({ name, delta }) => `<li><span>${name}</span><strong class="delta-negative">−${formatMoney(Math.abs(delta))}</strong></li>`).join("")
+    : `<li><span>Nothing has to fall</span><strong class="delta-positive">${formatMoney(0)}</strong></li>`;
+
+  const movedFloors = floors.map((floor) => {
+    const cls = floor.afterMet ? "met" : "failed";
+    const floorState = floor.afterMet ? "protected" : `${formatMoney(Math.abs(floor.afterGap))} short`;
+    const from = floor.beforeMet ? "was protected" : `was ${formatMoney(Math.abs(floor.beforeGap))} short`;
+    return `<li class="${cls}"><span>${floor.label}</span><strong>${formatMoney(floor.after)} — ${floorState}</strong><em>${from}</em></li>`;
+  }).join("");
+
+  dom.protectStatus.textContent = "Pending — not applied";
+  dom.protectApply.disabled = false;
+  dom.protectResult.className = "protect-result pending";
+  dom.protectResult.innerHTML = `
+    <p class="protect-verdict">
+      Protecting <strong>${proposalName}</strong> at ${formatMoney(protectedAmount)}${
+        protectedExceedsRequest ? ` (the nearest grid amount at or above your ${formatMoney(requestedMinimum)})` : ""
+      } costs this exact swap.
+    </p>
+    <p class="step-label">What falls to pay for it</p>
+    <ul class="protect-losers">${losers}</ul>
+    <p class="step-label">Every floor, before and after</p>
+    <ul class="protect-floors">${movedFloors}</ul>
+    <p class="protect-proof">${budgetProof.statement} Checked ${feasible.toLocaleString()} allocations that hold this commitment.</p>
+    <p class="protect-note"><strong>This is a proposal. Nothing has changed yet.</strong> The shared scenario stays at revision ${state.revision} until a person presses Apply.</p>
+  `;
+}
+
 function renderToolCatalog() {
   dom.toolCatalog.innerHTML = WEBMCP_TOOLS.map((tool) => `
     <article class="tool-card">
@@ -291,6 +377,7 @@ function render() {
   renderDecision();
   renderLog();
   renderCompromise();
+  renderProtection();
 }
 
 function validateAmount(proposal, amount) {
@@ -333,6 +420,10 @@ function setAllocation(proposalId, rawAmount, actor = "Human", source = "control
   const revisionBefore = state.revision;
   state = { allocations: candidate, revision: state.revision + 1 };
   proposedCompromise = null;
+  // A priced protection is measured against the allocation it was computed
+  // from. Once that moves, its "before" column is a lie, so it is discarded
+  // rather than left on screen looking current.
+  pendingProtection = null;
   recordDecision("accepted", `Accepted. ${proposal.name} is now ${formatMoney(amount)}.`, revisionBefore);
   setFeedback(`${proposal.name} is now ${formatMoney(amount)}. The shared scenario was updated.`, "ok");
   addActivity({ actor, action: "Updated a commitment", detail: `${proposal.name} is now ${formatMoney(amount)}. The rules engine recalculated every floor.`, tool: source.startsWith("tool") ? "set_allocation" : null });
@@ -391,6 +482,75 @@ function applyCompromise(actor = "Human", tool = null) {
   setFeedback("Compromise applied. The new allocation is feasible and every floor is protected.", "ok");
   addActivity({ actor, action: "Applied the shared compromise", detail: `The live scenario is now feasible: ${formatMoney(evaluation.total)} committed, ${evaluation.floors.length}/${evaluation.floors.length} floors protected.`, tool });
   proposedCompromise = null;
+  pendingProtection = null;
+  render();
+  return { ok: true, evaluation: publicEvaluation(evaluation) };
+}
+
+function askPriceOfProtecting(proposalId, rawMinimum, actor = "Human", tool = null) {
+  const atLeast = Number(rawMinimum);
+  const result = priceOfProtecting(state.allocations, { proposalId, atLeast });
+  pendingProtection = result;
+  const revisionBefore = state.revision;
+
+  if (!result.ok) {
+    recordDecision("rejected", `No proposal. ${result.reason.message}`, revisionBefore);
+    setFeedback(result.reason.message);
+    addActivity({
+      actor,
+      action: "Asked what protecting a commitment would cost",
+      detail: `${result.reason.message} The shared scenario was not touched.`,
+      tool,
+    });
+    render();
+    return result;
+  }
+
+  const cost = result.reductions.length
+    ? result.reductions.map(({ name, delta }) => `${name} −${formatMoney(Math.abs(delta))}`).join(", ")
+    : "nothing has to fall";
+  const message = `Protecting ${result.proposalName} at ${formatMoney(result.protectedAmount)} would cost: ${cost}.`;
+  // A priced proposal is explicitly NOT an accepted decision. The record shows
+  // the revision standing still, which is the whole point of the tool.
+  recordDecision("pending", `${message} Pending human review — nothing applied.`, revisionBefore);
+  setFeedback(`${message} Review it, then apply if the group agrees.`);
+  addActivity({
+    actor,
+    action: "Priced a protected commitment",
+    detail: `${message} Revision ${revisionBefore} is unchanged until a person applies it.`,
+    tool,
+  });
+  render();
+  return result;
+}
+
+function applyProtection(actor = "Human") {
+  if (!pendingProtection?.ok) {
+    const message = "There is no priced proposal to apply. Ask what protecting a commitment costs first.";
+    recordDecision("rejected", `Rejected. ${message}`, state.revision);
+    setFeedback(message);
+    addActivity({ actor, action: "Could not apply a protection", detail: message });
+    render();
+    return { ok: false, reason: "no_pending_protection", message };
+  }
+  const applied = pendingProtection;
+  const revisionBefore = state.revision;
+  state = { allocations: { ...applied.allocations }, revision: state.revision + 1 };
+  const evaluation = evaluateScenario(state.allocations);
+  const floorsMet = evaluation.floors.filter((floor) => floor.met).length;
+  recordDecision(
+    "accepted",
+    `Accepted after human review. ${applied.proposalName} is protected at ${formatMoney(applied.protectedAmount)}; ${formatMoney(evaluation.total)} committed, ${floorsMet}/${evaluation.floors.length} floors protected.`,
+    revisionBefore,
+  );
+  setFeedback(`${applied.proposalName} is protected at ${formatMoney(applied.protectedAmount)}. A person applied this, not the agent.`, "ok");
+  addActivity({
+    actor,
+    action: "Applied a protected commitment",
+    detail: `${applied.proposalName} held at ${formatMoney(applied.protectedAmount)}; revision ${revisionBefore} → ${state.revision}.`,
+  });
+  pendingProtection = null;
+  proposedCompromise = null;
   render();
   return { ok: true, evaluation: publicEvaluation(evaluation) };
 }
@@ -398,6 +558,7 @@ function applyCompromise(actor = "Human", tool = null) {
 function resetScenario(actor = "Human", tool = null) {
   state = createInitialState();
   proposedCompromise = null;
+  pendingProtection = null;
   setFeedback("Restored the original human draft. Nothing was hidden or discarded.", "ok");
   addActivity({ actor, action: "Restored the human draft", detail: "The exact opening priorities are back on the shared canvas.", tool });
   render();
@@ -476,7 +637,44 @@ const WEBMCP_TOOLS = [
     annotations: { readOnlyHint: false },
     execute: async () => safeResult(resetScenario("Agent", "reset_scenario")),
   },
+  {
+    name: "price_of_protecting",
+    title: "Price what it costs to protect one commitment",
+    description:
+      "Answer \"what would it cost to protect this?\" for a single commitment held at or above a stated minimum. Returns the exact swap -- which commitments fall and by how much, every stakeholder floor before and after, and proof the fixed budget still balances -- or an honest refusal when no allocation on the shared grid can do it. Never returns a near miss as a success, and never changes the shared scenario: applying the swap is a separate human action.",
+    schemaLabel: "input: { proposalId, atLeast } · output: exact swap or honest refusal · never mutates",
+    inputSchema: {
+      type: "object",
+      properties: {
+        proposalId: {
+          type: "string",
+          enum: PROPOSALS.map(({ id }) => id),
+          description: "The commitment a person wants to protect.",
+        },
+        atLeast: {
+          type: "integer",
+          description: "The minimum this commitment must keep, in whole dollars at $5,000 increments.",
+        },
+      },
+      required: ["proposalId", "atLeast"],
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: true },
+    execute: async ({ proposalId, atLeast }) =>
+      safeResult(askPriceOfProtecting(proposalId, atLeast, "Agent", "price_of_protecting")),
+  },
 ];
+
+function syncProtectRange() {
+  const proposal = proposalById.get(dom.protectTarget.value);
+  if (!proposal) return;
+  dom.protectMinimum.min = String(proposal.min);
+  dom.protectMinimum.max = String(proposal.max);
+  const current = Number(dom.protectMinimum.value);
+  if (!Number.isInteger(current) || current < proposal.min || current > proposal.max) {
+    dom.protectMinimum.value = String(state.allocations[proposal.id]);
+  }
+}
 
 function wireHumanControls() {
   document.addEventListener("click", (event) => {
@@ -487,6 +685,10 @@ function wireHumanControls() {
       if (action === "apply") applyCompromise();
       if (action === "reset") resetScenario();
       if (action === "stress") setAllocation("night-routes", 450_000, "Human", "stress-test");
+      if (action === "ask-protection") {
+        askPriceOfProtecting(dom.protectTarget.value, dom.protectMinimum.value, "Human", "price_of_protecting");
+      }
+      if (action === "apply-protection") applyProtection();
       return;
     }
     const changeButton = event.target.closest("[data-change]");
@@ -499,6 +701,10 @@ function wireHumanControls() {
   });
 
   document.addEventListener("change", (event) => {
+    if (event.target === dom.protectTarget) {
+      syncProtectRange();
+      return;
+    }
     const input = event.target.closest("[data-amount]");
     if (!input) return;
     const result = setAllocation(input.dataset.amount, input.value);
@@ -539,8 +745,9 @@ async function registerWebMcpTools() {
 renderToolCatalog();
 addActivity({ actor: "Human", action: "Opened the scenario", detail: "A full-budget draft is visible, including the commitments it still misses." });
 wireHumanControls();
+syncProtectRange();
 render();
 registerWebMcpTools();
 
 // Exported for zero-dependency browser-adjacent tests and manual console inspection.
-export { applyCompromise, evaluateTradeoffs, findCompromise, resetScenario, setAllocation };
+export { applyCompromise, applyProtection, askPriceOfProtecting, evaluateTradeoffs, findCompromise, resetScenario, setAllocation };
