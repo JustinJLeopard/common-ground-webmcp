@@ -120,7 +120,7 @@ function renderAllocations(evaluation) {
           <span class="proposal-code">${proposal.code}</span>
           <span class="proposal-name">${proposal.name}</span>
         </td>
-        <td><span class="proposal-description">${proposal.description}</span></td>
+        <td><span id="proposal-${proposal.id}" class="proposal-description">${proposal.description}</span></td>
         <td>
           <div class="allocation-control" data-proposal="${proposal.id}">
             <button type="button" data-change="-" aria-label="Decrease ${proposal.name} by ${formatMoney(ALLOCATION_STEP)}">−</button>

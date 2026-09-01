@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
@@ -10,6 +11,15 @@ import {
   findFeasibleCompromise,
   reduceScenario,
 } from "../src/model.js";
+
+test("allocation inputs reference their rendered proposal descriptions", async () => {
+  const appSource = await readFile(new URL("../src/app.js", import.meta.url), "utf8");
+  assert.match(
+    appSource,
+    /<span id="proposal-\$\{proposal\.id\}" class="proposal-description">\$\{proposal\.description\}<\/span>/,
+  );
+  assert.match(appSource, /aria-describedby="proposal-\$\{proposal\.id\}"/);
+});
 
 test("the opening brief is a fixed-budget but stakeholder-incomplete human draft", () => {
   const evaluation = evaluateScenario(INITIAL_ALLOCATIONS);

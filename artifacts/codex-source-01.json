@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "common-ground.codex-source-repair.v1",
+  "workId": "WEBMCP-CODEX-SOURCE-01",
+  "leaseMessageId": "msg_97bcbedbe8be",
+  "recordedAt": "2026-09-01T11:51:08-04:00",
+  "branch": "justinleopard/fix/webmcp-hostile-state",
+  "baseCommit": "ab6533ed0a08d3125d0f8550a9889bacbd0d7807",
+  "before": {
+    "state": "Each allocation input rendered aria-describedby=\"proposal-${proposal.id}\", but the corresponding proposal description span rendered without that id.",
+    "evidence": "The focused regression probe failed because src/app.js had no matching proposal description id."
+  },
+  "defect": {
+    "category": "accessibility",
+    "summary": "Allocation inputs referenced missing description elements.",
+    "impact": "Assistive technology could not resolve the existing proposal description through aria-describedby for any allocation input."
+  },
+  "repair": {
+    "summary": "Give each rendered proposal description the existing proposal-${proposal.id} identifier.",
+    "productionFiles": [
+      "src/app.js"
+    ],
+    "testFiles": [
+      "tests/model.test.js"
+    ],
+    "scope": "One rendered id attribute plus one source-contract regression test; no visual, dependency, configuration, deployment, or model changes."
+  },
+  "after": {
+    "state": "Every allocation input's aria-describedby value now resolves to its rendered proposal description.",
+    "proof": "The focused regression test and all repository checks pass."
+  },
+  "commands": [
+    {
+      "command": "node --test --test-name-pattern='allocation inputs reference' tests/model.test.js",
+      "phase": "before repair",
+      "exitCode": 1,
+      "result": "Focused regression test failed on the missing description id, as expected."
+    },
+    {
+      "command": "npm test",
+      "phase": "after repair",
+      "exitCode": 0,
+      "result": "PASS: 6 tests, 6 passed, 0 failed."
+    },
+    {
+      "command": "npm run verify",
+      "phase": "after repair",
+      "exitCode": 0,
+      "result": "PASS: verified 7 source files and 6 WebMCP tools."
+    },
+    {
+      "command": "git diff --check",
+      "phase": "after repair",
+      "exitCode": 0,
+      "result": "PASS: no whitespace errors."
+    }
+  ],
+  "remainingBrowserEvidenceGap": "No live browser or assistive-technology observation was performed because browser/profile/config work is outside this lease; runtime browser evidence remains for the Desktop integration owner."
+}
