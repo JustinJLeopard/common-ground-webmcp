@@ -17,22 +17,22 @@
 :root {
   color-scheme: dark;
 
-  --ink: #eef4de;
-  --muted: #c2d0bf;          /* raised for AA on every surface below */
-  --muted-soft: #a9b8a8;     /* decorative only, never load-bearing text */
-  --line: rgba(230, 244, 216, 0.18);
-  --line-strong: rgba(230, 244, 216, 0.34);
-  --surface: rgba(16, 34, 25, 0.78);
-  --surface-strong: #11251c;
-  --surface-deep: #091611;
-  --well: #0a1710;
+  --ink: #f3f3e9;
+  --muted: #bfd1cb;          /* raised for AA on every surface below */
+  --muted-soft: #9fb8b0;     /* decorative only, never load-bearing text */
+  --line: rgba(169, 225, 207, 0.2);
+  --line-strong: rgba(169, 225, 207, 0.38);
+  --surface: rgba(9, 42, 36, 0.82);
+  --surface-strong: #10342d;
+  --surface-deep: #061918;
+  --well: #071f1c;
 
-  --lime: #cef36a;
-  --lime-dark: #253814;
-  --orange: #ffb36a;
-  --red: #ff806c;
-  --blue: #97dbff;
-  --violet: #c9adff;
+  --lime: #8be3b9;
+  --lime-dark: #123b31;
+  --orange: #f2b36f;
+  --red: #ff8174;
+  --blue: #82d0f5;
+  --violet: #bea9f8;
 
   --radius: 18px;
   --radius-sm: 10px;
@@ -68,8 +68,9 @@ body {
   font-size: var(--t-body);
   line-height: 1.55;
   background:
-    radial-gradient(circle at 12% 0%, rgba(161, 229, 110, 0.09), transparent 30rem),
-    linear-gradient(160deg, #07130e 0%, #0b1b14 46%, #09130e 100%);
+    radial-gradient(ellipse at 12% -8%, rgba(50, 194, 151, 0.2), transparent 38rem),
+    radial-gradient(ellipse at 88% 3%, rgba(63, 151, 184, 0.13), transparent 34rem),
+    linear-gradient(158deg, #051714 0%, #092822 48%, #061715 100%);
   background-attachment: fixed;
 }
 
@@ -112,7 +113,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex="0"]:focus
 .brand-mark {
   display: inline-grid; grid-template-columns: repeat(3, 5px); gap: 3px;
   align-items: end; width: 28px; height: 27px; padding: 5px;
-  border: 1px solid rgba(206, 243, 106, 0.55); border-radius: 9px 9px 3px 3px;
+  border: 1px solid rgba(139, 227, 185, 0.58); border-radius: 9px 9px 3px 3px;
 }
 .brand-mark i { display: block; background: var(--lime); border-radius: 3px 3px 2px 2px; }
 .brand-mark i:nth-child(1) { height: 8px; opacity: 0.6; }
@@ -137,7 +138,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, [tabindex="0"]:focus
 .status-chip::before, .state-label::before {
   content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: currentColor;
 }
-.status-chip.ready { color: var(--lime); border-color: rgba(206, 243, 106, 0.45); }
+.status-chip.ready { color: var(--lime); border-color: rgba(139, 227, 185, 0.48); }
 .status-chip.pending { color: var(--orange); }
 .status-chip.unavailable { color: var(--muted); }
 
@@ -160,7 +161,7 @@ h3 { font-family: var(--display); font-size: var(--t-h3); line-height: 1.15; let
 .studio {
   padding: clamp(1.75rem, 4vw, 3rem) 0 3rem;
   background-image:
-    linear-gradient(180deg, rgba(9,22,17,0.62) 0%, rgba(9,22,17,0.86) 52%, var(--surface-deep) 100%),
+    linear-gradient(180deg, rgba(6,25,24,0.46) 0%, rgba(6,25,24,0.82) 52%, var(--surface-deep) 100%),
     url("assets/civic-ledger-field.png");
   /* The section is far taller than the image. `cover` therefore scaled it up
      ~3x and showed only its near-black top corner. Sizing to the container
@@ -207,7 +208,7 @@ h3 { font-family: var(--display); font-size: var(--t-h3); line-height: 1.15; let
 .meter span {
   display: block; width: 100%; height: 100%; border-radius: inherit;
   transform: scaleX(0); transform-origin: left center;
-  background: linear-gradient(90deg, var(--lime), #87d988);
+  background: linear-gradient(90deg, var(--lime), #72cfe0);
   transition: transform 360ms ease, background 300ms ease;
 }
 .meter.over span { background: linear-gradient(90deg, var(--orange), var(--red)); }
@@ -233,23 +234,23 @@ h3 { font-family: var(--display); font-size: var(--t-h3); line-height: 1.15; let
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 .button:disabled { cursor: not-allowed; opacity: 0.45; }
-.button-primary { background: var(--lime); color: #0d1b11; }
-.button-primary:hover:not(:disabled) { background: #ddff82; }
-.button-secondary { border-color: rgba(206, 243, 106, 0.65); background: transparent; color: var(--lime); }
-.button-secondary:hover:not(:disabled) { background: rgba(206, 243, 106, 0.1); }
+.button-primary { background: var(--lime); color: #071a16; }
+.button-primary:hover:not(:disabled) { background: #a5f0cd; }
+.button-secondary { border-color: rgba(139, 227, 185, 0.68); background: transparent; color: var(--lime); }
+.button-secondary:hover:not(:disabled) { background: rgba(139, 227, 185, 0.11); }
 .button-quiet { border-color: var(--line-strong); color: var(--ink); }
 .button-quiet:hover:not(:disabled) { background: rgba(255,255,255,0.05); }
-.button-warn { border-color: rgba(255, 179, 106, 0.65); color: #ffd0a1; background: rgba(255, 179, 106, 0.06); }
-.button-warn:hover:not(:disabled) { background: rgba(255, 179, 106, 0.14); }
+.button-warn { border-color: rgba(242, 179, 111, 0.68); color: #f8c997; background: rgba(242, 179, 111, 0.07); }
+.button-warn:hover:not(:disabled) { background: rgba(242, 179, 111, 0.15); }
 
 /* ---------- decision record ---------- */
 
 .decision-record {
   padding: 20px; margin-bottom: 1.6rem;
-  border: 1px solid rgba(255, 179, 106, 0.45); border-radius: var(--radius);
-  background: rgba(255, 179, 106, 0.07);
+  border: 1px solid rgba(242, 179, 111, 0.48); border-radius: var(--radius);
+  background: rgba(242, 179, 111, 0.08);
 }
-.decision-record.accepted { border-color: rgba(206, 243, 106, 0.45); background: rgba(206, 243, 106, 0.07); }
+.decision-record.accepted { border-color: rgba(139, 227, 185, 0.48); background: rgba(139, 227, 185, 0.08); }
 .decision-record h2 { margin: 0 0 0.5rem; }
 .decision-record p { margin: 0; font-size: var(--t-small); line-height: 1.55; color: var(--ink); }
 .decision-revision { margin-top: 0.5rem !important; font-family: var(--mono); font-size: var(--t-micro); color: var(--muted); }
@@ -258,7 +259,7 @@ h3 { font-family: var(--display); font-size: var(--t-h3); line-height: 1.15; let
 
 .panel, .allocation-panel {
   border: 1px solid var(--line); border-radius: var(--radius);
-  background: linear-gradient(150deg, rgba(26, 52, 38, 0.85), rgba(11, 28, 19, 0.75));
+  background: linear-gradient(150deg, rgba(15, 57, 48, 0.9), rgba(7, 30, 27, 0.82));
   padding: 24px;
 }
 .panel-topline {
@@ -311,7 +312,7 @@ td { color: var(--ink); font-size: var(--t-small); line-height: 1.45; }
   border: 1px solid var(--line-strong); border-radius: 9px;
   background: rgba(255,255,255,0.03); color: var(--ink); font-size: var(--t-lead);
 }
-.allocation-control button:hover { border-color: rgba(206,243,106,0.6); color: var(--lime); }
+.allocation-control button:hover { border-color: rgba(139,227,185,0.62); color: var(--lime); }
 .allocation-control input {
   width: 118px; min-height: 44px;
   border: 1px solid var(--line-strong); border-radius: 9px;
@@ -347,8 +348,8 @@ td { color: var(--ink); font-size: var(--t-small); line-height: 1.45; }
 .compromise-panel p { max-width: 56ch; color: var(--muted); font-size: var(--t-small); line-height: 1.55; }
 .compromise-summary {
   margin-top: 1.1rem; padding: 0.95rem;
-  border: 1px solid rgba(206, 243, 106, 0.25); border-radius: var(--radius-sm);
-  background: rgba(206,243,106,0.06);
+  border: 1px solid rgba(139, 227, 185, 0.28); border-radius: var(--radius-sm);
+  background: rgba(139,227,185,0.07);
 }
 .compromise-summary p { margin-bottom: 0.5rem; color: var(--ink); font-size: var(--t-small); }
 .compromise-summary ul {
@@ -393,7 +394,7 @@ td { color: var(--ink); font-size: var(--t-small); line-height: 1.45; }
   border: 1px solid rgba(151, 219, 255, 0.45); border-radius: var(--radius);
   background: rgba(151, 219, 255, 0.07);
 }
-.protect-result.refused { border-color: rgba(255, 179, 106, 0.45); background: rgba(255, 179, 106, 0.07); }
+.protect-result.refused { border-color: rgba(242, 179, 111, 0.48); background: rgba(242, 179, 111, 0.08); }
 .protect-result p { margin: 0 0 0.6rem; font-size: var(--t-small); line-height: 1.55; color: var(--ink); }
 .protect-result .step-label { display: block; margin: 1rem 0 0.45rem; }
 .protect-verdict { font-size: var(--t-body); line-height: 1.5; }
@@ -422,7 +423,7 @@ td { color: var(--ink); font-size: var(--t-small); line-height: 1.45; }
 .activity-log li:last-child { border-bottom: 0; }
 .log-index {
   display: grid; place-items: center; width: 2.1rem; height: 2.1rem;
-  border: 1px solid rgba(206, 243, 106, 0.35); border-radius: 8px;
+  border: 1px solid rgba(139, 227, 185, 0.38); border-radius: 8px;
   color: var(--lime); font-family: var(--mono); font-size: var(--t-micro);
 }
 .log-copy strong { display: block; color: var(--ink); font-size: var(--t-small); }
@@ -441,8 +442,8 @@ td { color: var(--ink); font-size: var(--t-small); line-height: 1.45; }
   border: 1px solid var(--line); border-radius: var(--radius-sm);
   background: rgba(10, 27, 18, 0.75);
 }
-.tool-card header { display: flex; justify-content: space-between; gap: 0.6rem; align-items: start; }
-.tool-card code { color: var(--lime); font-family: var(--mono); font-size: var(--t-small); line-height: 1.35; word-break: break-word; }
+.tool-card header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.6rem; align-items: start; }
+.tool-card code { color: var(--lime); font-family: var(--mono); font-size: var(--t-small); line-height: 1.35; word-break: normal; overflow-wrap: anywhere; }
 .tool-mode {
   flex: 0 0 auto; padding: 0.25rem 0.5rem;
   border: 1px solid var(--line-strong); border-radius: 999px;
@@ -455,7 +456,7 @@ td { color: var(--ink); font-size: var(--t-small); line-height: 1.45; }
 
 .closing-note {
   max-width: 720px; margin-bottom: 3.5rem; padding: 1.15rem 0 0 1.15rem;
-  border-left: 1px solid rgba(206, 243, 106, 0.6);
+  border-left: 1px solid rgba(139, 227, 185, 0.64);
   color: var(--muted); font-size: var(--t-small); line-height: 1.55;
 }
 .closing-note strong { color: var(--ink); }
@@ -508,6 +509,47 @@ td { color: var(--ink); font-size: var(--t-small); line-height: 1.45; }
   .status-chip { width: 100%; justify-content: center; }
 }
 
+/* ---------- commitment cards on a phone ---------- */
+
+/*
+  The 44px steppers above were already built for a phone, but `table` carried a
+  780px floor, so at 390px the "Your allocation" column sat off-screen inside
+  .table-scroll and the primary control of the product was unreachable without
+  horizontally scrolling a nested container. Stacking each row into a card
+  finishes the work the 620px rules had already started.
+
+  Dropping table display semantics costs no information here: every input keeps
+  its own aria-label ("Allocation for Night Routes in dollars") and an
+  aria-describedby pointing at the row's description, so the two cells whose
+  meaning came only from the header row get visible ::before labels instead.
+*/
+@media (max-width: 620px) {
+  .table-scroll { overflow-x: visible; padding: 0; border: 0; }
+  table { min-width: 0; }
+  thead {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+  tbody tr {
+    display: block; padding: 0.95rem; margin-bottom: 0.8rem;
+    border: 1px solid var(--line); border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  tbody tr:last-child { margin-bottom: 0; }
+  tbody td { display: block; padding: 0.45rem 0; border-bottom: 0; }
+  tbody td:first-child { padding-top: 0; }
+  tbody td:last-child { padding-bottom: 0; }
+  .proposal-description { max-width: none; }
+  tbody td:nth-child(3)::before,
+  tbody td:nth-child(4)::before {
+    display: block; margin-bottom: 0.4rem;
+    color: var(--muted); font-family: var(--mono); font-size: var(--t-micro);
+    font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+  }
+  tbody td:nth-child(3)::before { content: "Your allocation"; }
+  tbody td:nth-child(4)::before { content: "Human starting point"; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
@@ -519,6 +561,6 @@ td { color: var(--ink); font-size: var(--t-small); line-height: 1.45; }
 
 @media (prefers-contrast: more) {
   :root { --line: rgba(245,255,240,0.55); --line-strong: rgba(245,255,240,0.7); --muted: #e2eddf; }
-  .panel, .allocation-panel, .tool-card, .arch-steps li { background: #0b1b12; }
+  .panel, .allocation-panel, .tool-card, .arch-steps li { background: #082a24; }
   .button-secondary, .button-quiet { border-color: #f0f8ed; }
 }
