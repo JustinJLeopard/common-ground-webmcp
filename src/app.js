@@ -111,6 +111,16 @@ function safeResult(result) {
   return JSON.stringify(result, null, 2);
 }
 
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[character]);
+}
+
 function addActivity({ actor, action, detail, tool = null, result = "" }) {
   activities = [
     {
@@ -252,8 +262,8 @@ function renderLog() {
       <li>
         <span class="log-index">${String(activities.length - index).padStart(2, "0")}</span>
         <div class="log-copy">
-          <strong>${activity.actor} · ${activity.action}</strong>
-          <span>${activity.detail}${activity.tool ? ` <code>${activity.tool}</code>` : ""} · ${activity.time}</span>
+          <strong>${escapeHtml(activity.actor)} · ${escapeHtml(activity.action)}</strong>
+          <span>${escapeHtml(activity.detail)}${activity.tool ? ` <code>${escapeHtml(activity.tool)}</code>` : ""} · ${escapeHtml(activity.time)}</span>
         </div>
       </li>
     `).join("")

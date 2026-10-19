@@ -163,6 +163,20 @@ test("the registered-handler and human-commitment contract", async (t) => {
     assert.match(elementFor("#activity-log").innerHTML, /Human · Applied the shared compromise/);
   });
 
+  await t.test("tool-controlled activity text stays text at the HTML boundary", async () => {
+    const { app, elementFor, tools } = await loadApp();
+    const before = app.getAppSnapshot();
+    const payload = '<img src=x onerror="globalThis.compromised=true"> & \'quoted\'';
+    // Call the actual handler without relying on the browser to validate its
+    // schema: alternate clients and future fields must not create HTML sinks.
+    await tools.get("evaluate_tradeoffs").execute({ focus: payload });
+    const activityHtml = elementFor("#activity-log").innerHTML;
+    assert.doesNotMatch(activityHtml, /<img/);
+    assert.match(activityHtml, /&lt;img/);
+    assert.match(activityHtml, /&amp;/);
+    assert.deepEqual(app.getAppSnapshot(), before);
+  });
+
   await t.test("Human prices and applies the known Care Link swap", async () => {
     const { app, elementFor } = await loadApp();
     const priced = app.askPriceOfProtecting("care-link-rides", 225_000, "Human");
